@@ -15,6 +15,7 @@ go-magnetar supports reading multiple file formats through a unified codec inter
 | `.pptx` | `pptx.Codec` | PowerPoint presentations |
 | `.xlsx` | `excel.Codec` | Excel files |
 | `.eml` | `eml.Codec` | EML files |
+| `.pages` | `pages.Codec` | Apple Pages documents |
 
 ## Codec Interface
 

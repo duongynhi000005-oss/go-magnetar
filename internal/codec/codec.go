@@ -10,6 +10,7 @@ import (
 	"github.com/wmentor/go-magnetar/internal/codec/excel"
 	"github.com/wmentor/go-magnetar/internal/codec/html"
 	"github.com/wmentor/go-magnetar/internal/codec/odt"
+	"github.com/wmentor/go-magnetar/internal/codec/pages"
 	"github.com/wmentor/go-magnetar/internal/codec/pdf"
 	"github.com/wmentor/go-magnetar/internal/codec/pptx"
 	"github.com/wmentor/go-magnetar/internal/codec/tsv"
@@ -19,31 +20,35 @@ var (
 	ErrCodecNotFound = errors.New("codec not found")
 
 	codecs = map[string]Codec{
-		".csv":  &csv.Codec{},
-		".docx": &docx.Codec{},
-		".eml":  &eml.Codec{},
-		".htm":  &html.Codec{},
-		".html": &html.Codec{},
-		".odt":  &odt.Codec{},
-		".pdf":  &pdf.Codec{},
-		".pptx": &pptx.Codec{},
-		".tsv":  &tsv.Codec{},
-		".xlsx": &excel.Codec{},
-		"csv":   &csv.Codec{},
-		"docx":  &docx.Codec{},
-		"eml":   &eml.Codec{},
-		"htm":   &html.Codec{},
-		"html":  &html.Codec{},
-		"odt":   &odt.Codec{},
-		"pdf":   &pdf.Codec{},
-		"pptx":  &pptx.Codec{},
-		"tsv":   &tsv.Codec{},
-		"xlsx":  &excel.Codec{},
+		".csv":   &csv.Codec{},
+		".docx":  &docx.Codec{},
+		".eml":   &eml.Codec{},
+		".htm":   &html.Codec{},
+		".html":  &html.Codec{},
+		".odt":   &odt.Codec{},
+		".pages": &pages.Codec{},
+		".pdf":   &pdf.Codec{},
+		".pptx":  &pptx.Codec{},
+		".tsv":   &tsv.Codec{},
+		".xlsx":  &excel.Codec{},
+		"csv":    &csv.Codec{},
+		"docx":   &docx.Codec{},
+		"eml":    &eml.Codec{},
+		"htm":    &html.Codec{},
+		"html":   &html.Codec{},
+		"odt":    &odt.Codec{},
+		"pages":  &pages.Codec{},
+		"pdf":    &pdf.Codec{},
+		"pptx":   &pptx.Codec{},
+		"tsv":    &tsv.Codec{},
+		"xlsx":   &excel.Codec{},
 	}
 
 	// mimeCodecs maps MIME types to codecs.
 	mimeCodecs = map[string]Codec{
-		"application/pdf": &pdf.Codec{},
+		"application/pdf":                    &pdf.Codec{},
+		"application/vnd.apple.pages":        &pages.Codec{},
+		"application/x-iwork-pages-sffpages": &pages.Codec{},
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document":   &docx.Codec{},
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":         &excel.Codec{},
 		"application/vnd.oasis.opendocument.text":                                   &odt.Codec{},
@@ -54,7 +59,9 @@ var (
 	}
 
 	mimeBinary = map[string]struct{}{
-		"application/pdf": {},
+		"application/pdf":                    {},
+		"application/vnd.apple.pages":        {},
+		"application/x-iwork-pages-sffpages": {},
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document":   {},
 		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":         {},
 		"application/vnd.oasis.opendocument.text":                                   {},
