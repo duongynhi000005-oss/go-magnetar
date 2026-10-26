@@ -1,11 +1,15 @@
 package web
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/wmentor/go-magnetar/internal/codec/pdf"
+	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/plugin"
 )
 
 func TestGetMimeType(t *testing.T) {
@@ -174,4 +178,36 @@ func TestMimeCodecWork(t *testing.T) {
 		}
 		t.Logf("Expected error for nil codec, got: %v", err)
 	})
+}
+
+func TestWebFetch_MimeCodecError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/pdf")
+		_, _ = w.Write([]byte("not a valid pdf"))
+	}))
+	defer srv.Close()
+
+	cfgPath := t.TempDir() + "/config.yaml"
+	if err := os.WriteFile(cfgPath, []byte("version: \"1.0\"\n"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error: %v", err)
+	}
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		t.Fatalf("config.Load() error: %v", err)
+	}
+	wt, err := New(cfg, nil, &plugin.State{})
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	got, err := wt.webFetch(srv.URL, false)
+	if err == nil {
+		t.Fatalf("expected decode data error, got nil (result=%q)", got)
+	}
+	if !strings.Contains(err.Error(), "decode data error:") {
+		t.Fatalf("expected decode data error, got: %v", err)
+	}
+	if got != "" {
+		t.Fatalf("expected empty result on error, got %q", got)
+	}
 }

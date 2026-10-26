@@ -257,12 +257,11 @@ func (w *WebTools) webFetch(url string, isFetch bool) (string, error) {
 	}
 
 	if mimeCodec, err := codec.GetCodecByMIME(mimeType); err == nil {
-		if result, e := mimeCodecWork(mimeCodec, content); e == nil {
-			return result, nil
-		} else {
-			fmt.Println(result)
+		result, e := mimeCodecWork(mimeCodec, content)
+		if e != nil {
 			return "", fmt.Errorf("decode data error: %w", e)
 		}
+		return result, nil
 	}
 
 	if strings.Contains(mimeType, "text/html") {
