@@ -904,3 +904,185 @@ func TestFileReadErrors(t *testing.T) {
 		t.Errorf("FileRead with nil root expected failure")
 	}
 }
+
+func createTestFileTree(t *testing.T, rootDir string, files map[string]string) {
+	t.Helper()
+
+	for relPath, content := range files {
+		fullPath := filepath.Join(rootDir, filepath.FromSlash(relPath))
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
+			t.Fatalf("failed to create parent directory for %s: %v", relPath, err)
+		}
+		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
+			t.Fatalf("failed to write test file %s: %v", relPath, err)
+		}
+	}
+}
+
+func normalizeRelPaths(t *testing.T, paths []string) []string {
+	t.Helper()
+
+	out := make([]string, len(paths))
+	for i, p := range paths {
+		out[i] = filepath.ToSlash(p)
+	}
+	return out
+}
+
+func TestFileList(t *testing.T) {
+	t.Parallel()
+
+	g, rootFS := newTestToolsWithRoot(t)
+	createTestFileTree(t, rootFS.Name(), map[string]string{
+		"main.go":                         "package main",
+		"README.md":                       "# readme",
+		"test_runner.py":                  "print('ok')",
+		"src/app.go":                      "package src",
+		"src/utils/helper.go":             "package utils",
+		"src/utils/test_helper.py":        "print('helper')",
+		"src/utils/notes.txt":             "notes",
+		"docs/guide_v1.md":                "guide",
+		"special/file-with_chars 1.log":   "log",
+		".git/config":                     "git config",
+		".hidden_dir/secret.go":           "package secret",
+		"src/.cache/ignored.go":           "package ignored",
+	})
+
+	tests := []struct {
+		name   string
+		filter *FileListFilter
+		want   []string
+	}{
+		{
+			name:   "nil filter returns all non-hidden-dir files recursively",
+			filter: nil,
+			want: []string{
+				"README.md",
+				"docs/guide_v1.md",
+				"main.go",
+				"special/file-with_chars 1.log",
+				"src/app.go",
+				"src/utils/helper.go",
+				"src/utils/notes.txt",
+				"src/utils/test_helper.py",
+				"test_runner.py",
+			},
+		},
+		{
+			name:   "empty filter string returns all files",
+			filter: &FileListFilter{Filter: ""},
+			want: []string{
+				"README.md",
+				"docs/guide_v1.md",
+				"main.go",
+				"special/file-with_chars 1.log",
+				"src/app.go",
+				"src/utils/helper.go",
+				"src/utils/notes.txt",
+				"src/utils/test_helper.py",
+				"test_runner.py",
+			},
+		},
+		{
+			name:   "glob pattern matching go files",
+			filter: &FileListFilter{Filter: "*.go"},
+			want: []string{
+				"main.go",
+				"src/app.go",
+				"src/utils/helper.go",
+			},
+		},
+		{
+			name:   "glob pattern matching prefix test_*.py",
+			filter: &FileListFilter{Filter: "test_*.py"},
+			want: []string{
+				"src/utils/test_helper.py",
+				"test_runner.py",
+			},
+		},
+		{
+			name:   "character class and single-char wildcard pattern",
+			filter: &FileListFilter{Filter: "guide_v?.m[a-z]"},
+			want: []string{
+				"docs/guide_v1.md",
+			},
+		},
+		{
+			name:   "special characters in filename",
+			filter: &FileListFilter{Filter: "*.log"},
+			want: []string{
+				"special/file-with_chars 1.log",
+			},
+		},
+		{
+			name:   "non-matching pattern returns empty slice",
+			filter: &FileListFilter{Filter: "*.rs"},
+			want:   nil,
+		},
+		{
+			name:   "case sensitivity of glob pattern",
+			filter: &FileListFilter{Filter: "readme.md"},
+			want:   nil,
+		},
+		{
+			name:   "invalid glob syntax returns empty slice without panic",
+			filter: &FileListFilter{Filter: "[unclosed"},
+			want:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := normalizeRelPaths(t, g.FileList(tt.filter))
+			if len(got) != len(tt.want) {
+				t.Fatalf("FileList(%+v) count = %d (%v), want %d (%v)", tt.filter, len(got), got, len(tt.want), tt.want)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Errorf("FileList(%+v)[%d] = %q, want %q", tt.filter, i, got[i], tt.want[i])
+				}
+			}
+		})
+	}
+}
+
+func TestFileListEmptyDirectory(t *testing.T) {
+	t.Parallel()
+
+	g, rootFS := newTestToolsWithRoot(t)
+	if err := os.MkdirAll(filepath.Join(rootFS.Name(), "empty_sub/nested_empty"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	got := g.FileList(nil)
+	if len(got) != 0 {
+		t.Errorf("FileList(nil) on empty directory tree = %v, want empty", got)
+	}
+}
+
+func TestFileListDispatch(t *testing.T) {
+	t.Parallel()
+
+	g, rootFS := newTestToolsWithRoot(t)
+	createTestFileTree(t, rootFS.Name(), map[string]string{
+		"alpha.go":     "package main",
+		"sub/beta.txt": "beta",
+	})
+
+	outFiltered := g.Dispatch("file_list", `{"filter":"*.go"}`)
+	if !strings.Contains(outFiltered, "alpha.go") || strings.Contains(outFiltered, "beta.txt") {
+		t.Errorf("Dispatch(file_list, *.go) = %q, want alpha.go only", outFiltered)
+	}
+
+	outAll := g.Dispatch("file_list", "")
+	if !strings.Contains(outAll, "alpha.go") || !strings.Contains(outAll, "beta.txt") {
+		t.Errorf("Dispatch(file_list, empty) = %q, want both files", outAll)
+	}
+
+	outInvalidJSON := g.Dispatch("file_list", `{invalid`)
+	if !strings.Contains(outInvalidJSON, "error: failed to parse arguments") {
+		t.Errorf("Dispatch(file_list, invalid JSON) = %q, want parse error", outInvalidJSON)
+	}
+}
