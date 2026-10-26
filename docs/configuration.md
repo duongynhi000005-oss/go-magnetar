@@ -160,8 +160,9 @@ Controls conversation history compression:
 
 | Key | Type | Description |
 |---|---|---|
+| `mode` | string | Compacting strategy: `soft` (preserve `save_tail` messages) or `compact` (summarize entire history into a single message; default: `soft`) |
 | `threshold` | integer | Token threshold for compression; `0` = auto (80% of `llm.context`) |
-| `save_tail` | integer | Number of trailing messages to preserve unchanged (default: `6`) |
+| `save_tail` | integer | Number of trailing messages to preserve unchanged in `soft` mode (default: `6`) |
 
 ## Environment Variables and File Substitution
 

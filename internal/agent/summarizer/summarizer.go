@@ -13,10 +13,17 @@ import (
 	"github.com/wmentor/go-magnetar/internal/printer"
 )
 
-const summaryPrompt = `You are a conversation summarizer. You will be given a sequence of chat messages.
+const (
+	// ModeSoft preserves the trailing save_tail messages unchanged and summarizes the earlier history.
+	ModeSoft = "soft"
+	// ModeCompact summarizes the entire non-system conversation history into a single message.
+	ModeCompact = "compact"
+
+	summaryPrompt = `You are a conversation summarizer. You will be given a sequence of chat messages.
 Produce a concise summary that preserves all factual details, decisions, and context needed to continue the conversation.
 Write the summary as a single assistant message in the same language as the conversation.
 Do not add any preamble or meta-commentary — output only the summary text.`
+)
 
 // Summarizer condenses a slice of chat messages into a single summary message
 // using the configured LLM.
@@ -81,7 +88,7 @@ func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage) ([]openai.
 	rest := messages[1:]
 
 	saveTail := s.cfg.Int("compact.save_tail")
-	if saveTail < 1 || saveTail >= len(rest) {
+	if s.Mode() == ModeCompact || saveTail < 1 || saveTail >= len(rest) {
 		saveTail = 0
 	}
 
@@ -165,4 +172,13 @@ func estimateTokens(m openai.ChatCompletionMessage) int {
 	}
 	t := max(chars/4, 1)
 	return t
+}
+
+// Mode returns the configured compaction strategy ("soft" or "compact").
+// Defaults to ModeSoft ("soft") when unset or unrecognized.
+func (s *Summarizer) Mode() string {
+	if s.cfg != nil && strings.EqualFold(strings.TrimSpace(s.cfg.String("compact.mode")), ModeCompact) {
+		return ModeCompact
+	}
+	return ModeSoft
 }

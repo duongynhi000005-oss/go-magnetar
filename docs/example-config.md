@@ -63,6 +63,7 @@ rag:
 
 # Conversation history compression
 compact:
+  mode: soft  # soft or compact
   threshold: 0
   save_tail: 6
 
