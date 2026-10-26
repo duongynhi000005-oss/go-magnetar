@@ -143,12 +143,7 @@ func TestNewEmbeddingClient(t *testing.T) {
 		t.Parallel()
 
 		cfgPath := filepath.Join(t.TempDir(), "config.yml")
-		yaml := "version: "1.0"
-rag:
-  llm:
-    api_key: "test-key"
-    base_url: "http://localhost:11434/v1"
-"
+		yaml := "version: \"1.0\"\nrag:\n  llm:\n    api_key: \"test-key\"\n    base_url: \"http://localhost:11434/v1\"\n"
 		if err := os.WriteFile(cfgPath, []byte(yaml), 0o600); err != nil {
 			t.Fatal(err)
 		}
