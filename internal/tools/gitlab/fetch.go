@@ -2,7 +2,6 @@ package gitlab
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/printer"
 )
 
@@ -35,15 +35,7 @@ func (g *GitLabTools) FetchMergeRequest(projectPath string, mrID string) (string
 	ctx, cancel := context.WithTimeout(context.Background(), gitlabDefaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   gitlabDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(gitlabDefaultTimeout)
 
 	// URL-encode the project path
 
@@ -626,15 +618,7 @@ func (g *GitLabTools) formatTreeMarkdown(treeItems []GitLabTreeItem, path string
 
 // doRequest performs an HTTP request with GitLab API headers.
 func (g *GitLabTools) doRequest(req *http.Request) (*http.Response, error) {
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   gitlabDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(gitlabDefaultTimeout)
 
 	// Add Accept header
 	req.Header.Set("Accept", "application/json")

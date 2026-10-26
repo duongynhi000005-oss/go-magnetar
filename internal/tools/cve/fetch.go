@@ -11,6 +11,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/printer"
 )
 
@@ -68,7 +69,7 @@ func (c *CVETools) FetchVulnerability(id string) (string, error) {
 
 	apiURL := fmt.Sprintf("https://api.osv.dev/v1/vulns/%s", parsedID)
 
-	client := &http.Client{Timeout: cveDefaultTimeout}
+	client := requester.NewHTTPClient(cveDefaultTimeout)
 	resp, err := client.Get(apiURL)
 	if err != nil {
 		return "", fmt.Errorf("cve: failed to fetch vulnerability %s: %w", parsedID, err)

@@ -163,6 +163,16 @@ Controls conversation history compression:
 | `threshold` | integer | Token threshold for compression; `0` = auto (80% of `llm.context`) |
 | `save_tail` | integer | Number of trailing messages to preserve unchanged (default: `6`) |
 
+## `proxy` Section
+
+Controls HTTP/HTTPS proxy settings for all outgoing network requests (LLM APIs, integrations, and web tools). Config values take priority over `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. Invalid proxy URLs log a warning and fall back to a direct connection.
+
+| Key | Type | Description |
+|---|---|---|
+| `http` | string | Proxy URL for HTTP requests (overrides `HTTP_PROXY` / `http_proxy`) |
+| `https` | string | Proxy URL for HTTPS requests (overrides `HTTPS_PROXY` / `https_proxy`) |
+| `no_proxy` | string | Comma-separated host/domain bypass list (overrides `NO_PROXY` / `no_proxy`) |
+
 ## Environment Variables and File Substitution
 
 All string parameters support the following substitution syntaxes:

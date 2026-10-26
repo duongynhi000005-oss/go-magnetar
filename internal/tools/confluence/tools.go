@@ -2,7 +2,6 @@ package confluence
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -21,6 +20,7 @@ import (
 	"golang.org/x/net/html/charset"
 
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/plugin"
 	"github.com/wmentor/go-magnetar/internal/printer"
 )
@@ -82,15 +82,7 @@ func (c *ConfluenceTools) fetchPage(pageID string, isShortID bool) (*Page, error
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   defaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(defaultTimeout)
 
 	apiURL := fmt.Sprintf("%s/rest/api/content/%s?expand=body.storage,space,version,history.createdBy",
 		c.cfg.String("confluence.base_url"), pageID)
@@ -329,15 +321,7 @@ func (c *ConfluenceTools) EditPage(pageID string, markdownContent string) (strin
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   defaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(defaultTimeout)
 
 	apiURL := fmt.Sprintf("%s/rest/api/content/%s", c.cfg.String("confluence.base_url"), pageID)
 

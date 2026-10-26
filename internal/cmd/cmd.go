@@ -14,6 +14,7 @@ import (
 
 	"github.com/wmentor/go-magnetar/internal/agent/chat"
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/plugin"
 	skillplugin "github.com/wmentor/go-magnetar/internal/plugins/chatcmd/skill"
 	version "github.com/wmentor/go-magnetar/internal/plugins/chatcmd/version"
@@ -66,6 +67,7 @@ func Execute() error {
 	}
 
 	printer.SetDefault(printer.New(os.Stdout, false))
+	requester.ConfigureFromConfig(cfg)
 
 	if root.File == "" {
 		version.PrintVersion(cfg.ProfileParamString("llm.model"))

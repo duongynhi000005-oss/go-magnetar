@@ -2,7 +2,6 @@ package jira
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,6 +13,7 @@ import (
 	"golang.org/x/net/html/charset"
 
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/printer"
 	"github.com/wmentor/go-magnetar/internal/tools/jira/render"
 )
@@ -37,15 +37,7 @@ func (j *JiraTools) FetchIssue(issueKey string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), jiraDefaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   jiraDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(jiraDefaultTimeout)
 
 	apiURL := fmt.Sprintf("%s/rest/api/2/issue/%s", j.cfg.String("jira.base_url"), issueKey)
 
@@ -264,15 +256,7 @@ func (j *JiraTools) FetchIssuesByJQL(jql string, maxResults int, startAt int) (s
 	ctx, cancel := context.WithTimeout(context.Background(), jiraDefaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   jiraDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(jiraDefaultTimeout)
 
 	apiURL := fmt.Sprintf("%s/rest/api/2/search", j.cfg.String("jira.base_url"))
 
@@ -409,15 +393,7 @@ func (j *JiraTools) CreateIssue(input CreateIssueInput) (CreateIssueResult, erro
 	ctx, cancel := context.WithTimeout(context.Background(), jiraDefaultTimeout)
 	defer cancel()
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   jiraDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(jiraDefaultTimeout)
 
 	// Convert Markdown description to Jira format
 	jiraDescription := render.Convert(input.Description)

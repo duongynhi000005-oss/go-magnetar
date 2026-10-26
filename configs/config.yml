@@ -29,3 +29,8 @@ profiles:
 compact:
   threshold: 0    # token count at which history summarization is triggered. If not set (or 0), defaults to 80 % of llm.context.
   save_tail: 6    # number of most-recent messages to preserve unchanged during summarization. If less than 1, all non-system messages are summarized.
+
+proxy:
+  http: ""      # HTTP proxy URL (overrides HTTP_PROXY environment variable)
+  https: ""     # HTTPS proxy URL (overrides HTTPS_PROXY environment variable)
+  no_proxy: ""  # comma-separated list of hosts to bypass proxy (overrides NO_PROXY environment variable)

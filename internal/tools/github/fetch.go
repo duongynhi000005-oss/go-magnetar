@@ -2,7 +2,6 @@ package github
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 
 	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 	"github.com/wmentor/go-magnetar/internal/printer"
 )
 
@@ -634,15 +634,7 @@ func (g *GitHubTools) formatTreeMarkdown(files []struct {
 
 // fetchWithHeaders performs an HTTP request with GitHub API headers.
 func (g *GitHubTools) fetchWithHeaders(ctx context.Context, method string, apiURL string) (*http.Response, error) { //nolint:unparam // ok.
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		DisableKeepAlives: true,
-	}
-
-	client := &http.Client{
-		Timeout:   githubDefaultTimeout,
-		Transport: tr,
-	}
+	client := requester.NewHTTPClient(githubDefaultTimeout)
 
 	req, err := http.NewRequestWithContext(ctx, method, apiURL, nil)
 	if err != nil {
