@@ -298,6 +298,24 @@ func (g *GenericTools) FileWrite(filename string, content string) bool {
 		printer.Error("file_write: blocked by read-only mode", "file", filename)
 		return false
 	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	if writer, err := codec.GetWriteCodec(ext); err == nil {
+		f, err := g.root.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+		if err != nil {
+			printer.Error("file_write: failed to write file", "file", filename, "err", err)
+			return false
+		}
+		targetPath := f.Name()
+		_ = f.Close()
+
+		if err := writer.WriteFile(targetPath, content); err != nil {
+			printer.Error("file_write: failed to write file", "file", filename, "err", err)
+			return false
+		}
+		return true
+	}
+
 	err := g.root.WriteFile(filename, []byte(content), 0o644)
 	if err != nil {
 		printer.Error("file_write: failed to write file", "file", filename, "err", err)

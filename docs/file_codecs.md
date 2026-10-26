@@ -94,3 +94,33 @@ To add support for a new file format:
        }
    )
    ```
+
+## Write Codecs
+
+In addition to reading files, the codec system supports converting Markdown content when writing files via `file_write` or `codec.GetWriteCodec()`.
+
+### Supported Write Formats
+
+| Extension | Codec | Description |
+|---|---|---|
+| `.docx` | `docx.WriteCodec` | Converts Markdown content into a formatted Microsoft Word (`.docx`) document |
+
+### WriteCodec Interface
+
+```go
+type WriteCodec interface {
+    WriteFile(filename string, content string) error
+}
+```
+
+### Example: Writing DOCX Files
+
+```go
+import "github.com/wmentor/go-magnetar/internal/codec"
+
+writer, err := codec.GetWriteCodec(".docx")
+if err != nil {
+    // handle error
+}
+err = writer.WriteFile("output.docx", "# Header\n\nSome text with **bold** and *italic*.")
+```

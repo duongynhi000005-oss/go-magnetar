@@ -151,3 +151,42 @@ func TestIsBinaryFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestGetWriteCodec(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		ext     string
+		wantErr bool
+	}{
+		{name: "docx extension with dot", ext: ".docx", wantErr: false},
+		{name: "docx extension without dot", ext: "docx", wantErr: false},
+		{name: "uppercase DOCX", ext: ".DOCX", wantErr: false},
+		{name: "unsupported extension", ext: ".pdf", wantErr: true},
+		{name: "unknown extension", ext: ".unknown", wantErr: true},
+		{name: "empty extension", ext: "", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			c, err := codec.GetWriteCodec(tt.ext)
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("GetWriteCodec(%q) expected error, got nil", tt.ext)
+				}
+				if !errors.Is(err, codec.ErrCodecNotFound) {
+					t.Errorf("GetWriteCodec(%q) expected ErrCodecNotFound, got %v", tt.ext, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("GetWriteCodec(%q) unexpected error: %v", tt.ext, err)
+				}
+				if c == nil {
+					t.Errorf("GetWriteCodec(%q) returned nil WriteCodec", tt.ext)
+				}
+			}
+		})
+	}
+}

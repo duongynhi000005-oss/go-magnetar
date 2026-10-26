@@ -1092,3 +1092,23 @@ func TestFileListDispatch(t *testing.T) {
 		t.Errorf("Dispatch(file_list, invalid JSON) = %q, want parse error", outInvalidJSON)
 	}
 }
+
+func TestFileWriteDocx(t *testing.T) {
+	t.Parallel()
+
+	g, _ := newTestToolsWithRoot(t)
+
+	markdown := "# Header\n\nSome text with **bold** and *italic*.\n\n- Item 1\n- Item 2\n"
+	if !g.FileWrite("output.docx", markdown) {
+		t.Fatal("FileWrite(output.docx) returned false")
+	}
+
+	got, ok := g.FileRead("output.docx", 0, 0)
+	if !ok {
+		t.Fatal("FileRead(output.docx) returned false")
+	}
+
+	if !strings.Contains(got, "Header") || !strings.Contains(got, "Some text with bold and italic.") {
+		t.Errorf("FileRead(output.docx) = %q, want Header and formatted paragraph", got)
+	}
+}
