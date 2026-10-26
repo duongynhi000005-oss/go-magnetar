@@ -45,10 +45,7 @@ func (s *Store) Name() string {
 // NewStore creates a new qdrant store instance.
 func NewStore(cfg *config.Config) (*Store, error) {
 	// Build OpenAI embedding client.
-	embedCfg := openai.DefaultConfig(cfg.String("rag.llm.api_key"))
-	embedCfg.BaseURL = cfg.String("rag.llm.base_url")
-	embedCfg.HTTPClient = requester.Get()
-	embedClient := openai.NewClientWithConfig(embedCfg)
+	embedClient := rag.NewEmbeddingClient(cfg)
 
 	// Build LLM client for query expansion (reuses main LLM config).
 	llmCfg := openai.DefaultConfig(cfg.ProfileParamString("llm.api_key"))

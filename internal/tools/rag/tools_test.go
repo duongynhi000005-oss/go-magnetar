@@ -1,8 +1,11 @@
 package rag_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/wmentor/go-magnetar/internal/config"
 	"github.com/wmentor/go-magnetar/internal/tools/rag"
 )
 
@@ -122,4 +125,42 @@ func TestStaticDefinitionSearch(t *testing.T) {
 	if req[0] != "query" {
 		t.Errorf("Tool.Function.Parameters.required[0] = %v, want %v", req[0], "query")
 	}
+}
+
+func TestNewEmbeddingClient(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil config", func(t *testing.T) {
+		t.Parallel()
+
+		client := rag.NewEmbeddingClient(nil)
+		if client == nil {
+			t.Fatal("NewEmbeddingClient(nil) returned nil")
+		}
+	})
+
+	t.Run("configured client", func(t *testing.T) {
+		t.Parallel()
+
+		cfgPath := filepath.Join(t.TempDir(), "config.yml")
+		yaml := "version: "1.0"
+rag:
+  llm:
+    api_key: "test-key"
+    base_url: "http://localhost:11434/v1"
+"
+		if err := os.WriteFile(cfgPath, []byte(yaml), 0o600); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := config.Load(cfgPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		client := rag.NewEmbeddingClient(cfg)
+		if client == nil {
+			t.Fatal("NewEmbeddingClient(cfg) returned nil")
+		}
+	})
 }

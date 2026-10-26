@@ -7,6 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
+
+	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/http/requester"
 )
 
 // contentUUID derives a deterministic UUID v5 from the text content.
@@ -55,4 +58,17 @@ func StaticDefinitionSearch() openai.Tool {
 			},
 		},
 	}
+}
+
+// NewEmbeddingClient creates a new OpenAI client configured for RAG embeddings.
+func NewEmbeddingClient(cfg *config.Config) *openai.Client {
+	var apiKey, baseURL string
+	if cfg != nil {
+		apiKey = cfg.String("rag.llm.api_key")
+		baseURL = cfg.String("rag.llm.base_url")
+	}
+	embedCfg := openai.DefaultConfig(apiKey)
+	embedCfg.BaseURL = baseURL
+	embedCfg.HTTPClient = requester.Get()
+	return openai.NewClientWithConfig(embedCfg)
 }
