@@ -20,6 +20,8 @@ func TestGetCodec(t *testing.T) {
 		{name: "csv extension without dot", ext: "csv", wantErr: false},
 		{name: "docx extension with dot", ext: ".docx", wantErr: false},
 		{name: "docx extension without dot", ext: "docx", wantErr: false},
+		{name: "epub extension with dot", ext: ".epub", wantErr: false},
+		{name: "epub extension without dot", ext: "epub", wantErr: false},
 		{name: "pdf extension with dot", ext: ".pdf", wantErr: false},
 		{name: "pdf extension without dot", ext: "pdf", wantErr: false},
 		{name: "odt extension with dot", ext: ".odt", wantErr: false},
@@ -76,6 +78,7 @@ func TestGetCodecByMIME(t *testing.T) {
 	}{
 		{name: "csv MIME", mime: "text/csv", wantErr: false},
 		{name: "tsv MIME", mime: "text/tab-separated-values", wantErr: false},
+		{name: "epub MIME", mime: "application/epub+zip", wantErr: false},
 		{name: "pdf MIME", mime: "application/pdf", wantErr: false},
 		{name: "docx MIME", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", wantErr: false},
 		{name: "xlsx MIME", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", wantErr: false},
@@ -127,6 +130,7 @@ func TestIsBinaryFormat(t *testing.T) {
 		mime string
 		want bool
 	}{
+		{name: "EPUB", mime: "application/epub+zip", want: true},
 		{name: "PDF", mime: "application/pdf", want: true},
 		{name: "DOCX", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", want: true},
 		{name: "XLSX", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", want: true},
