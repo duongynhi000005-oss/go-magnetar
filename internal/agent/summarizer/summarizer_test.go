@@ -1,11 +1,14 @@
 package summarizer
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
@@ -80,27 +83,45 @@ func TestSummarizerMode(t *testing.T) {
 func TestSummarizerCompactNoOpWhenNothingToSummarize(t *testing.T) {
 	t.Parallel()
 
-	cfg := loadTestConfig(t, "compact:\n  mode: soft\n  save_tail: 6\n")
-	s := New(cfg)
+	for _, mode := range []string{ModeSoft, ModeCompact} {
+		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
 
-	empty, err := s.Compact(nil)
-	if err != nil || len(empty) != 0 {
-		t.Fatalf("Compact(nil) = (%v, %v), want empty nil error", empty, err)
-	}
+			cfg := loadTestConfig(t, fmt.Sprintf("compact:\n  mode: %s\n  save_tail: 6\n", mode))
+			s := New(cfg)
 
-	onlySystem := []openai.ChatCompletionMessage{
-		{Role: openai.ChatMessageRoleSystem, Content: "system prompt"},
-	}
-	got, err := s.Compact(onlySystem)
-	if err != nil || len(got) != 1 {
-		t.Fatalf("Compact(onlySystem) = (%v, %v), want 1 message", got, err)
+			empty, err := s.Compact(nil)
+			if err != nil || len(empty) != 0 {
+				t.Fatalf("Compact(nil) = (%v, %v), want empty nil error", empty, err)
+			}
+
+			onlySystem := []openai.ChatCompletionMessage{
+				{Role: openai.ChatMessageRoleSystem, Content: "system prompt"},
+			}
+			got, err := s.Compact(onlySystem)
+			if err != nil || len(got) != 1 {
+				t.Fatalf("Compact(onlySystem) = (%v, %v), want 1 message", got, err)
+			}
+		})
 	}
 }
 
 func TestSummarizerCompactStrategies(t *testing.T) {
 	t.Parallel()
 
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	var (
+		mu             sync.Mutex
+		lastTranscript string
+	)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req openai.ChatCompletionRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err == nil && len(req.Messages) >= 2 {
+			mu.Lock()
+			lastTranscript = req.Messages[1].Content
+			mu.Unlock()
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = fmt.Fprint(w, `{"choices":[{"message":{"role":"assistant","content":"condensed summary"}}]}`)
 	}))
@@ -115,8 +136,6 @@ func TestSummarizerCompactStrategies(t *testing.T) {
 	}
 
 	t.Run("soft mode preserves save_tail messages", func(t *testing.T) {
-		t.Parallel()
-
 		yaml := fmt.Sprintf("profile: default\nprofiles:\n  default:\n    llm:\n      base_url: %q\n      api_key: test\n      model: gpt-test\ncompact:\n  mode: soft\n  save_tail: 2\n", srv.URL)
 		cfg := loadTestConfig(t, yaml)
 		s := New(cfg)
@@ -131,11 +150,16 @@ func TestSummarizerCompactStrategies(t *testing.T) {
 		if got[1].Content != "condensed summary" || got[2].Content != "msg3" || got[3].Content != "msg4" {
 			t.Errorf("unexpected messages in soft mode: %+v", got)
 		}
+
+		mu.Lock()
+		transcript := lastTranscript
+		mu.Unlock()
+		if !strings.Contains(transcript, "msg1") || !strings.Contains(transcript, "msg2") || strings.Contains(transcript, "msg3") {
+			t.Errorf("soft mode transcript = %q, want only head messages msg1 and msg2", transcript)
+		}
 	})
 
 	t.Run("compact mode summarizes entire non-system history into single message", func(t *testing.T) {
-		t.Parallel()
-
 		yaml := fmt.Sprintf("profile: default\nprofiles:\n  default:\n    llm:\n      base_url: %q\n      api_key: test\n      model: gpt-test\ncompact:\n  mode: compact\n  save_tail: 2\n", srv.URL)
 		cfg := loadTestConfig(t, yaml)
 		s := New(cfg)
@@ -149,6 +173,15 @@ func TestSummarizerCompactStrategies(t *testing.T) {
 		}
 		if got[0].Content != "sys" || got[1].Content != "condensed summary" {
 			t.Errorf("unexpected messages in compact mode: %+v", got)
+		}
+
+		mu.Lock()
+		transcript := lastTranscript
+		mu.Unlock()
+		for _, wantMsg := range []string{"msg1", "msg2", "msg3", "msg4"} {
+			if !strings.Contains(transcript, wantMsg) {
+				t.Errorf("compact mode transcript = %q, missing %q", transcript, wantMsg)
+			}
 		}
 	})
 }

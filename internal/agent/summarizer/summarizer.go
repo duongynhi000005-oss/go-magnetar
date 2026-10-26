@@ -69,26 +69,76 @@ func (s *Summarizer) NeedsCompaction(messages []openai.ChatCompletionMessage) bo
 	return total >= t
 }
 
-// Compact summarizes the «head» portion of messages (everything except the last
-// save_tail messages) and returns a new message slice:
-//
-//	[system, summary-assistant-msg, ...tail]
+// Compact compresses the conversation history according to the configured
+// compact.mode strategy ("soft" by default, or "compact").
 //
 // The system message (index 0) is always preserved verbatim and is NOT passed
 // to the summarizer — only non-system messages are condensed.
-//
-// If save_tail < 1 all non-system messages are summarized.
 func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
 	if len(messages) == 0 {
 		return messages, nil
 	}
 
+	switch s.Mode() {
+	case ModeCompact:
+		return s.compactFull(messages)
+	default:
+		return s.compactSoft(messages)
+	}
+}
+
+// compactFull implements the "compact" strategy:
+//  1. Reads the full conversation history (all non-system messages)
+//  2. Uses the LLM to generate a summary of the entire conversation
+//  3. Replaces the entire conversation history with a single summary message
+//     following the preserved system prompt: [system, summary-assistant-msg].
+func (s *Summarizer) compactFull(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
+	system := messages[0]
+	rest := messages[1:]
+	if len(rest) == 0 {
+		return messages, nil
+	}
+
+	printer.Info("summarizer: compacting full history",
+		"mode", ModeCompact,
+		"summarize", len(rest),
+	)
+
+	summary, err := s.summarize(rest)
+	if err != nil {
+		return nil, fmt.Errorf("summarizer: %w", err)
+	}
+
+	result := []openai.ChatCompletionMessage{
+		system,
+		{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: summary,
+		},
+	}
+
+	printer.Debug("summarizer: history compacted",
+		"mode", ModeCompact,
+		"before", len(messages),
+		"after", len(result),
+	)
+
+	return result, nil
+}
+
+// compactSoft implements the "soft" strategy: it summarizes the «head» portion
+// of messages (everything except the last save_tail messages) and returns:
+//
+//	[system, summary-assistant-msg, ...tail]
+//
+// If save_tail < 1 all non-system messages are summarized.
+func (s *Summarizer) compactSoft(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
 	// Separate system message from the rest.
 	system := messages[0]
 	rest := messages[1:]
 
 	saveTail := s.cfg.Int("compact.save_tail")
-	if s.Mode() == ModeCompact || saveTail < 1 || saveTail >= len(rest) {
+	if saveTail < 1 || saveTail >= len(rest) {
 		saveTail = 0
 	}
 
@@ -105,6 +155,7 @@ func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage) ([]openai.
 	}
 
 	printer.Info("summarizer: compacting history",
+		"mode", ModeSoft,
 		"summarize", len(toSummarize),
 		"preserve_tail", len(tail),
 	)
@@ -123,6 +174,7 @@ func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage) ([]openai.
 	result = append(result, tail...)
 
 	printer.Debug("summarizer: history compacted",
+		"mode", ModeSoft,
 		"before", 1+len(rest),
 		"after", len(result),
 	)
@@ -138,7 +190,8 @@ func (s *Summarizer) summarize(messages []openai.ChatCompletionMessage) (string,
 		sb.WriteString(m.Role)
 		sb.WriteString(": ")
 		sb.WriteString(m.Content)
-		sb.WriteString("\n")
+		sb.WriteString("
+")
 	}
 
 	req := openai.ChatCompletionRequest{

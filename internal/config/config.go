@@ -64,6 +64,7 @@ func Load(path string) (*Config, error) {
 		"ssh.use_ssh_agent":          false,                   // use ssh-agent for authentication (default: false)
 		"ssh.remote_dir":             "",                      // remote working directory (optional, default: $HOME)
 		"ssh.timeout":                120,                     // SSH command timeout in seconds (default: 120)
+		"compact.mode":               "soft",                  // compacting strategy: soft or compact (default: soft)
 	}
 
 	if currentUser, err := user.Current(); err == nil {

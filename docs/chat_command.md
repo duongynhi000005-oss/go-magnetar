@@ -25,6 +25,29 @@ go-magnetar provides several built-in chat commands accessible from the interact
 | `/timing` | — | Toggle execution time display (on\|off) |
 | `/skill` | `/sk` | List available skills or load/activate a skill |
 
+## /compact Command
+
+Immediately compress conversation history via the summarizer:
+
+```
+> /compact
+Context compacted: 12 → 2 messages.
+```
+
+The `/compact` command uses the strategy configured via `compact.mode` in `config.yml`:
+
+- **`soft`** (default): Summarizes older conversation messages while preserving the last `compact.save_tail` messages unchanged (`[system, summary, ...tail]`).
+- **`compact`**: Reads the full conversation history, uses the LLM to generate a summary of the entire conversation, and replaces the entire history with a single summary message alongside the system prompt (`[system, summary]`).
+
+**Configuration:**
+
+```yaml
+compact:
+  mode: soft      # soft (default) or compact
+  threshold: 0    # token threshold for automatic compaction (0 = 80% of llm.context)
+  save_tail: 6    # trailing messages preserved in soft mode
+```
+
 ## /fetch Command
 
 Fetch content from a URL, optionally save to file:
