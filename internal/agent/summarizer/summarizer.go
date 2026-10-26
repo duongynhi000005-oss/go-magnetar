@@ -78,7 +78,7 @@ func (s *Summarizer) NeedsCompaction(messages []openai.ChatCompletionMessage) bo
 // The system message (index 0) is always preserved verbatim and is NOT passed
 // to the summarizer — only non-system messages are condensed.
 func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage, mode ...string) ([]openai.ChatCompletionMessage, error) {
-	if len(messages) == 0 {
+	if len(messages) <= 1 {
 		return messages, nil
 	}
 
@@ -108,11 +108,11 @@ func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage, mode ...st
 //  3. Replaces the entire conversation history with a single summary message
 //     following the preserved system prompt: [system, summary-assistant-msg].
 func (s *Summarizer) compactFull(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
-	system := messages[0]
-	rest := messages[1:]
-	if len(rest) == 0 {
+	if len(messages) <= 1 {
 		return messages, nil
 	}
+	system := messages[0]
+	rest := messages[1:]
 
 	printer.Info("summarizer: compacting full history",
 		"mode", ModeCompact,
@@ -148,6 +148,9 @@ func (s *Summarizer) compactFull(messages []openai.ChatCompletionMessage) ([]ope
 //
 // If save_tail < 1 all non-system messages are summarized.
 func (s *Summarizer) compactSoft(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
+	if len(messages) <= 1 {
+		return messages, nil
+	}
 	// Separate system message from the rest.
 	system := messages[0]
 	rest := messages[1:]
