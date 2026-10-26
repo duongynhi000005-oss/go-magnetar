@@ -200,8 +200,8 @@ func (h *agentHandle) Config() *config.Config {
 	return h.a.cfg
 }
 
-func (h *agentHandle) Compact() error {
-	compacted, err := h.a.summarizer.Compact(h.a.messages)
+func (h *agentHandle) Compact(mode ...string) error {
+	compacted, err := h.a.summarizer.Compact(h.a.messages, mode...)
 	if err != nil {
 		return err
 	}

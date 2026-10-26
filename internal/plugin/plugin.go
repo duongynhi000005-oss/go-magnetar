@@ -142,8 +142,9 @@ type AgentHandle interface {
 	// Reconfigure OpenAI client
 	Reconfigure()
 	// Compact runs history compression via the summarizer and replaces
-	// the history with the compacted version.
-	Compact() error
+	// the history with the compacted version. An optional mode ("soft" or "full")
+	// overrides the configured compact.mode for this invocation.
+	Compact(mode ...string) error
 	// Reset clears conversation history, keeping only the system prompt.
 	Reset()
 }

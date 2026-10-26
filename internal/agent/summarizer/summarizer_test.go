@@ -184,4 +184,26 @@ func TestSummarizerCompactStrategies(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("explicit mode override full and soft", func(t *testing.T) {
+		yaml := fmt.Sprintf("profile: default\nprofiles:\n  default:\n    llm:\n      base_url: %q\n      api_key: test\n      model: gpt-test\ncompact:\n  mode: soft\n  save_tail: 2\n", srv.URL)
+		cfg := loadTestConfig(t, yaml)
+		s := New(cfg)
+
+		gotFull, err := s.Compact(history, "full")
+		if err != nil {
+			t.Fatalf("Compact(full) error = %v", err)
+		}
+		if len(gotFull) != 2 {
+			t.Fatalf("len(gotFull) = %d, want 2", len(gotFull))
+		}
+
+		gotSoft, err := s.Compact(history, "soft")
+		if err != nil {
+			t.Fatalf("Compact(soft) error = %v", err)
+		}
+		if len(gotSoft) != 4 {
+			t.Fatalf("len(gotSoft) = %d, want 4", len(gotSoft))
+		}
+	})
 }

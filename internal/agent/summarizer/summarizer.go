@@ -18,6 +18,8 @@ const (
 	ModeSoft = "soft"
 	// ModeCompact summarizes the entire non-system conversation history into a single message.
 	ModeCompact = "compact"
+	// ModeFull is an alias for ModeCompact (full history compaction).
+	ModeFull = "full"
 
 	summaryPrompt = `You are a conversation summarizer. You will be given a sequence of chat messages.
 Produce a concise summary that preserves all factual details, decisions, and context needed to continue the conversation.
@@ -70,16 +72,29 @@ func (s *Summarizer) NeedsCompaction(messages []openai.ChatCompletionMessage) bo
 }
 
 // Compact compresses the conversation history according to the configured
-// compact.mode strategy ("soft" by default, or "compact").
+// compact.mode strategy ("soft" by default, or "compact"/"full"), or an
+// explicit mode override ("soft", "full", or "compact") when provided.
 //
 // The system message (index 0) is always preserved verbatim and is NOT passed
 // to the summarizer — only non-system messages are condensed.
-func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, error) {
+func (s *Summarizer) Compact(messages []openai.ChatCompletionMessage, mode ...string) ([]openai.ChatCompletionMessage, error) {
 	if len(messages) == 0 {
 		return messages, nil
 	}
 
-	switch s.Mode() {
+	effectiveMode := s.Mode()
+	if len(mode) > 0 && strings.TrimSpace(mode[0]) != "" {
+		switch strings.ToLower(strings.TrimSpace(mode[0])) {
+		case ModeCompact, ModeFull:
+			effectiveMode = ModeCompact
+		case ModeSoft:
+			effectiveMode = ModeSoft
+		default:
+			return nil, fmt.Errorf("summarizer: unknown compact mode %q (expected %q or %q)", mode[0], ModeSoft, ModeFull)
+		}
+	}
+
+	switch effectiveMode {
 	case ModeCompact:
 		return s.compactFull(messages)
 	default:
@@ -229,8 +244,11 @@ func estimateTokens(m openai.ChatCompletionMessage) int {
 // Mode returns the configured compaction strategy ("soft" or "compact").
 // Defaults to ModeSoft ("soft") when unset or unrecognized.
 func (s *Summarizer) Mode() string {
-	if s.cfg != nil && strings.EqualFold(strings.TrimSpace(s.cfg.String("compact.mode")), ModeCompact) {
-		return ModeCompact
+	if s.cfg != nil {
+		switch strings.ToLower(strings.TrimSpace(s.cfg.String("compact.mode"))) {
+		case ModeCompact, ModeFull:
+			return ModeCompact
+		}
 	}
 	return ModeSoft
 }

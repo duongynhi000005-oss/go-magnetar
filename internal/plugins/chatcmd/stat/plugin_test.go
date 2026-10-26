@@ -23,10 +23,10 @@ func (f *fakeAgentHandle) Messages() []openai.ChatCompletionMessage { return f.m
 func (f *fakeAgentHandle) SetMessages(msgs []openai.ChatCompletionMessage) {
 	f.msgs = msgs
 }
-func (f *fakeAgentHandle) Config() *config.Config { return f.cfg }
-func (f *fakeAgentHandle) Reconfigure()           {}
-func (f *fakeAgentHandle) Compact() error         { return nil }
-func (f *fakeAgentHandle) Reset()                 {}
+func (f *fakeAgentHandle) Config() *config.Config    { return f.cfg }
+func (f *fakeAgentHandle) Reconfigure()              {}
+func (f *fakeAgentHandle) Compact(_ ...string) error { return nil }
+func (f *fakeAgentHandle) Reset()                    {}
 
 func writeTestConfig(t *testing.T) *config.Config {
 	t.Helper()

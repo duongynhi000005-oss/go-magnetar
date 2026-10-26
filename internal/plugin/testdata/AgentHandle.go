@@ -47,16 +47,20 @@ func (_m *AgentHandle) EXPECT() *AgentHandle_Expecter {
 }
 
 // Compact provides a mock function for the type AgentHandle
-func (_mock *AgentHandle) Compact() error {
-	ret := _mock.Called()
+func (_mock *AgentHandle) Compact(mode ...string) error {
+	var _ca []any
+	for _, _a := range mode {
+		_ca = append(_ca, _a)
+	}
+	ret := _mock.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Compact")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func() error); ok {
-		r0 = returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(...string) error); ok {
+		r0 = returnFunc(mode...)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -69,13 +73,17 @@ type AgentHandle_Compact_Call struct {
 }
 
 // Compact is a helper method to define mock.On call
-func (_e *AgentHandle_Expecter) Compact() *AgentHandle_Compact_Call {
-	return &AgentHandle_Compact_Call{Call: _e.mock.On("Compact")}
+func (_e *AgentHandle_Expecter) Compact(mode ...any) *AgentHandle_Compact_Call {
+	return &AgentHandle_Compact_Call{Call: _e.mock.On("Compact", mode...)}
 }
 
-func (_c *AgentHandle_Compact_Call) Run(run func()) *AgentHandle_Compact_Call {
+func (_c *AgentHandle_Compact_Call) Run(run func(mode ...string)) *AgentHandle_Compact_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		var variadicArgs []string
+		for _, a := range args {
+			variadicArgs = append(variadicArgs, a.(string))
+		}
+		run(variadicArgs...)
 	})
 	return _c
 }
@@ -85,7 +93,7 @@ func (_c *AgentHandle_Compact_Call) Return(err error) *AgentHandle_Compact_Call 
 	return _c
 }
 
-func (_c *AgentHandle_Compact_Call) RunAndReturn(run func() error) *AgentHandle_Compact_Call {
+func (_c *AgentHandle_Compact_Call) RunAndReturn(run func(mode ...string) error) *AgentHandle_Compact_Call {
 	_c.Call.Return(run)
 	return _c
 }

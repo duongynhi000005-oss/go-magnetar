@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/wmentor/go-magnetar/internal/plugin"
 	"github.com/wmentor/go-magnetar/internal/printer"
@@ -19,10 +20,24 @@ type Plugin struct{}
 func (p *Plugin) Init(_ *plugin.State, hub plugin.Hub) error {
 	hub.RegisterChatCommand(plugin.ChatCommand{
 		Name: "compact",
-		Help: "Compress conversation history via summarizer.",
+		Help: "Compress conversation history via summarizer ([soft|full]).",
 		Execute: func(_ context.Context, params *plugin.ChatCommandInput) (*plugin.ChatCommandResponse, error) {
+			arg := strings.ToLower(strings.TrimSpace(params.Args))
+			switch arg {
+			case "", "soft", "full", "compact":
+			default:
+				fmt.Fprintln(os.Stdout, "Usage: /compact [soft|full]")
+				return plugin.NopChatCommandResponse, nil
+			}
+
 			before := len(params.AgentHandler.Messages())
-			if err := params.AgentHandler.Compact(); err != nil {
+			var err error
+			if arg == "" {
+				err = params.AgentHandler.Compact()
+			} else {
+				err = params.AgentHandler.Compact(arg)
+			}
+			if err != nil {
 				printer.Error("chat: manual compaction failed", "err", err)
 				fmt.Fprintln(os.Stdout, "Error: compaction failed — see logs for details.")
 				return plugin.NopChatCommandResponse, nil

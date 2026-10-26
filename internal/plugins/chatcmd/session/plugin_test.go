@@ -31,7 +31,7 @@ func (a *mockAgent) Config() *config.Config {
 	return nil
 }
 
-func (a *mockAgent) Compact() error {
+func (a *mockAgent) Compact(_ ...string) error {
 	return nil
 }
 
