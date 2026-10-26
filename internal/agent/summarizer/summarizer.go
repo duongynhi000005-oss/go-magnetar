@@ -190,8 +190,7 @@ func (s *Summarizer) summarize(messages []openai.ChatCompletionMessage) (string,
 		sb.WriteString(m.Role)
 		sb.WriteString(": ")
 		sb.WriteString(m.Content)
-		sb.WriteString("
-")
+		sb.WriteString("\n")
 	}
 
 	req := openai.ChatCompletionRequest{
