@@ -21,6 +21,9 @@ type Tool struct {
 	// executed one after another (in the order the LLM listed them) after
 	// all parallel tools have finished.
 	Sequential bool
+	// Repeatable marks tools that may be invoked multiple times with identical
+	// arguments within a single Ask turn.
+	Repeatable bool
 }
 
 type ToolOption func(*Tool)
@@ -42,6 +45,14 @@ func Sequential() ToolOption {
 	return func(t *Tool) {
 		if t != nil {
 			t.Sequential = true
+		}
+	}
+}
+
+func Repeatable() ToolOption {
+	return func(t *Tool) {
+		if t != nil {
+			t.Repeatable = true
 		}
 	}
 }

@@ -98,6 +98,10 @@ type LLMTool struct {
 	// executed one after another (in the order the LLM listed them) after
 	// all parallel tools have finished.
 	Sequential bool
+	// Repeatable marks tools that may be invoked multiple times with identical
+	// arguments within a single Ask turn because each invocation can produce
+	// varying output or side effects (e.g. exec, ssh, system_date).
+	Repeatable bool
 }
 
 // ChatCommandInput encapsulates all parameters for ChatCommand execution.

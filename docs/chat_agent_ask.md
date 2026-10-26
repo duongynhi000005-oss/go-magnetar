@@ -124,7 +124,7 @@ If all 50 iterations are exhausted:
 alreadyDoneToolCalls := map[toolRecord]struct{}{}
 ```
 
-Prevents the LLM from calling the same tool with the same arguments twice in one request.
+Prevents the LLM from calling the same stateful/read-only tool with the same arguments twice in one request. Tools marked `Repeatable: true` (such as `exec`, `ssh`, and `system_date`) bypass `alreadyDoneToolCalls` so they can be invoked multiple times with identical arguments when varying output is expected (e.g. `uuidgen`, `date`).
 
 ### 2. Search Tool Call Limit
 

@@ -417,22 +417,24 @@ func (a *ChatAgent) Ask(userInput string) (string, error) {
 			var sequentialCalls []openai.ToolCall
 
 			for _, toolCall := range choice.Message.ToolCalls {
+				t, ok := toolMap[toolCall.Function.Name]
 				toolKey := toolRecord{Name: toolCall.Function.Name, Args: toolCall.Function.Arguments}
-				if _, has := alreadyDoneToolCalls[toolKey]; has {
-					a.messages = append(a.messages, openai.ChatCompletionMessage{
-						Role:       openai.ChatMessageRoleTool,
-						Content:    "error: this tool was called earlier with the same parameters",
-						ToolCallID: toolCall.ID,
-					})
-					printer.Warn("llm require double tool call", "tool", toolKey.Name, "args", toolKey.Args)
-					continue
+				if !(ok && t.Repeatable) {
+					if _, has := alreadyDoneToolCalls[toolKey]; has {
+						a.messages = append(a.messages, openai.ChatCompletionMessage{
+							Role:       openai.ChatMessageRoleTool,
+							Content:    "error: this tool was called earlier with the same parameters",
+							ToolCallID: toolCall.ID,
+						})
+						printer.Warn("llm require double tool call", "tool", toolKey.Name, "args", toolKey.Args)
+						continue
+					}
+					alreadyDoneToolCalls[toolKey] = struct{}{}
 				}
-				alreadyDoneToolCalls[toolKey] = struct{}{}
 				if atomic.LoadInt64(toolCallCount) < maxSearchToolCalls {
 					atomic.AddInt64(allInterationRealToolCall, 1)
 				}
 
-				t, ok := toolMap[toolCall.Function.Name]
 				if ok && t.Sequential {
 					sequentialCalls = append(sequentialCalls, toolCall)
 				} else {

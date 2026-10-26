@@ -1,10 +1,14 @@
 package genericplugin
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/wmentor/go-magnetar/internal/config"
+	"github.com/wmentor/go-magnetar/internal/plugin"
 )
 
 func TestProcessEnvVars(t *testing.T) {
@@ -318,5 +322,61 @@ func writeTestFile(t *testing.T, path, content string) {
 
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
+	}
+}
+
+type mockGenericHub struct {
+	tools []plugin.LLMTool
+}
+
+func (h *mockGenericHub) RegisterTool(tool plugin.LLMTool)             { h.tools = append(h.tools, tool) }
+func (h *mockGenericHub) RegisterChatCommand(plugin.ChatCommand)       {}
+func (h *mockGenericHub) RegisterPreprocessor(plugin.PreprocessorFunc) {}
+func (h *mockGenericHub) Go(func(ctx context.Context))                 {}
+func (h *mockGenericHub) Stop()                                        {}
+
+func TestPluginRepeatableTools(t *testing.T) {
+	t.Parallel()
+
+	cfgPath := filepath.Join(t.TempDir(), "config.yml")
+	if err := os.WriteFile(cfgPath, []byte("version: \"1.0\"\nssh:\n  enable: true\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hub := &mockGenericHub{}
+	p := &Plugin{}
+	if err := p.Init(&plugin.State{Config: cfg}, hub); err != nil {
+		t.Fatalf("Init() error = %v", err)
+	}
+
+	repeatableByName := make(map[string]bool, len(hub.tools))
+	for _, tool := range hub.tools {
+		repeatableByName[tool.Definition().Function.Name] = tool.Repeatable
+	}
+
+	wantRepeatable := map[string]bool{
+		"exec":               true,
+		"ssh":                true,
+		"system_date":        true,
+		"file_read":          false,
+		"file_list":          false,
+		"file_write":         false,
+		"file_edit":          false,
+		"file_edit_multiple": false,
+	}
+
+	for name, want := range wantRepeatable {
+		got, ok := repeatableByName[name]
+		if !ok {
+			t.Errorf("tool %q was not registered", name)
+			continue
+		}
+		if got != want {
+			t.Errorf("tool %q Repeatable = %v, want %v", name, got, want)
+		}
 	}
 }

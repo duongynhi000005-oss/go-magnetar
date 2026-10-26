@@ -93,6 +93,7 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 		Execute: func(_ context.Context, args string) (string, error) {
 			return p.get().Dispatch("exec", args), nil
 		},
+		Repeatable: true,
 	})
 	if p.state.Config.Bool("ssh.enable") {
 		hub.RegisterTool(plugin.LLMTool{
@@ -100,6 +101,7 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 			Execute: func(_ context.Context, args string) (string, error) {
 				return p.get().Dispatch("ssh", args), nil
 			},
+			Repeatable: true,
 		})
 	}
 	hub.RegisterTool(plugin.LLMTool{
@@ -107,6 +109,7 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 		Execute: func(_ context.Context, args string) (string, error) {
 			return p.get().Dispatch("system_date", args), nil
 		},
+		Repeatable: true,
 	})
 	p.registerPreprocessor(hub)
 	return nil
