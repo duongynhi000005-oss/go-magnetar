@@ -933,6 +933,9 @@ func TestFileList(t *testing.T) {
 	t.Parallel()
 
 	g, rootFS := newTestToolsWithRoot(t)
+	if err := os.Remove(filepath.Join(rootFS.Name(), "config.yml")); err != nil {
+		t.Fatal(err)
+	}
 	createTestFileTree(t, rootFS.Name(), map[string]string{
 		"main.go":                         "package main",
 		"README.md":                       "# readme",
@@ -1052,6 +1055,9 @@ func TestFileListEmptyDirectory(t *testing.T) {
 	t.Parallel()
 
 	g, rootFS := newTestToolsWithRoot(t)
+	if err := os.Remove(filepath.Join(rootFS.Name(), "config.yml")); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.MkdirAll(filepath.Join(rootFS.Name(), "empty_sub/nested_empty"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -1076,9 +1082,9 @@ func TestFileListDispatch(t *testing.T) {
 		t.Errorf("Dispatch(file_list, *.go) = %q, want alpha.go only", outFiltered)
 	}
 
-	outAll := g.Dispatch("file_list", "")
+	outAll := g.Dispatch("file_list", `{}`)
 	if !strings.Contains(outAll, "alpha.go") || !strings.Contains(outAll, "beta.txt") {
-		t.Errorf("Dispatch(file_list, empty) = %q, want both files", outAll)
+		t.Errorf("Dispatch(file_list, empty object) = %q, want both files", outAll)
 	}
 
 	outInvalidJSON := g.Dispatch("file_list", `{invalid`)
