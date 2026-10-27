@@ -23,12 +23,12 @@ type Store interface {
 
 // RAGTools provides RAG operations as LLM tools.
 type RAGTools struct {
-	cfg   *config.Config
+	cfg   config.Config
 	store Store
 }
 
 // New creates a new RAGTools instance.
-func New(cfg *config.Config, store Store) (*RAGTools, error) {
+func New(cfg config.Config, store Store) (*RAGTools, error) {
 	if cfg == nil {
 		return nil, ErrInvalidConfig
 	}

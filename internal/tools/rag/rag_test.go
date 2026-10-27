@@ -8,7 +8,7 @@ import (
 	"github.com/wmentor/go-magnetar/internal/tools/rag"
 )
 
-var testConfig *config.Config
+var testConfig config.Config
 
 func init() {
 	var err error
@@ -50,7 +50,7 @@ func TestNew(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		cfg       *config.Config
+		cfg       config.Config
 		store     rag.Store
 		wantErr   bool
 		errString string

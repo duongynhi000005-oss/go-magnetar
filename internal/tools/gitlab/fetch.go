@@ -22,11 +22,11 @@ const gitlabDefaultTimeout = time.Minute
 
 // GitLabTools provides GitLab merge request fetching as an LLM tool.
 type GitLabTools struct {
-	cfg *config.Config
+	cfg config.Config
 }
 
 // New creates a new GitLabTools instance.
-func New(cfg *config.Config) *GitLabTools {
+func New(cfg config.Config) *GitLabTools {
 	return &GitLabTools{cfg: cfg}
 }
 

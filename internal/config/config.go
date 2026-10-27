@@ -18,8 +18,24 @@ const (
 	currentVersion = "1.0"
 )
 
-// Config is the root configuration structure.
-type Config struct {
+// Config is the root configuration interface.
+type Config interface {
+	Profiles() []string
+	String(key string) string
+	Bool(key string) bool
+	Int(key string) int
+	Float64(key string) float64
+	Strings(key string) []string
+	ProfileParamString(key string) string
+	ProfileParamBool(key string) bool
+	ProfileParamInt(key string) int
+	ProfileParamFloat64(key string) float64
+	SetProfile(profile string) error
+	Profile() string
+	Copy() Config
+}
+
+type config struct {
 	cfg       *koanf.Koanf
 	profile   string
 	configDir string
@@ -28,7 +44,7 @@ type Config struct {
 var ErrProfileNotFound = errors.New("profile not found")
 
 // Load reads and parses a YAML config file at the given path.
-func Load(path string) (*Config, error) {
+func Load(path string) (Config, error) {
 	k := koanf.New(".")
 
 	// defaults holds default config values that are applied before the
@@ -103,66 +119,66 @@ func Load(path string) (*Config, error) {
 
 	configDir := filepath.Dir(path)
 
-	return &Config{
+	return &config{
 		cfg:       k,
 		profile:   k.String("profile"),
 		configDir: configDir,
 	}, nil
 }
 
-func (c *Config) Profiles() []string {
+func (c *config) Profiles() []string {
 	list := c.cfg.MapKeys("profiles")
 	sort.Strings(list)
 	return list
 }
 
 // String returns the string value for the given key.
-func (c *Config) String(key string) string {
+func (c *config) String(key string) string {
 	return ResolveEnvVars(c.cfg.String(key), c.configDir)
 }
 
 // Bool returns the boolean value for the given key.
-func (c *Config) Bool(key string) bool {
+func (c *config) Bool(key string) bool {
 	return c.cfg.Bool(key)
 }
 
 // Int returns the integer value for the given key.
-func (c *Config) Int(key string) int {
+func (c *config) Int(key string) int {
 	return c.cfg.Int(key)
 }
 
 // Float64 returns the float64 value for the given key.
-func (c *Config) Float64(key string) float64 {
+func (c *config) Float64(key string) float64 {
 	return c.cfg.Float64(key)
 }
 
 // Strings returns the string slice value for the given key.
-func (c *Config) Strings(key string) []string {
+func (c *config) Strings(key string) []string {
 	return c.cfg.Strings(key)
 }
 
 // String returns the string value for the given key.
-func (c *Config) ProfileParamString(key string) string {
+func (c *config) ProfileParamString(key string) string {
 	return ResolveEnvVars(c.cfg.String(c.makeProfileKey(key)), c.configDir)
 }
 
 // Bool returns the boolean value for the given key.
-func (c *Config) ProfileParamBool(key string) bool {
+func (c *config) ProfileParamBool(key string) bool {
 	return c.cfg.Bool(c.makeProfileKey(key))
 }
 
 // Int returns the integer value for the given key.
-func (c *Config) ProfileParamInt(key string) int {
+func (c *config) ProfileParamInt(key string) int {
 	return c.cfg.Int(c.makeProfileKey(key))
 }
 
 // Float64 returns the float64 value for the given key.
-func (c *Config) ProfileParamFloat64(key string) float64 {
+func (c *config) ProfileParamFloat64(key string) float64 {
 	return c.cfg.Float64(c.makeProfileKey(key))
 }
 
 // SetProfile sets the profile name to use for parameter lookup.
-func (c *Config) SetProfile(profile string) error {
+func (c *config) SetProfile(profile string) error {
 	profiles := c.Profiles()
 
 	if slice.ContainsAny(profiles, profile) {
@@ -178,11 +194,11 @@ func (c *Config) SetProfile(profile string) error {
 }
 
 // Profile returns the current profile name.
-func (c *Config) Profile() string {
+func (c *config) Profile() string {
 	return c.profile
 }
 
-func (c *Config) makeProfileKey(key string) string {
+func (c *config) makeProfileKey(key string) string {
 	if c.profile == "" {
 		return key
 	}
@@ -190,8 +206,8 @@ func (c *Config) makeProfileKey(key string) string {
 }
 
 // Copy creates a full copy of the current config.
-func (c *Config) Copy() *Config {
-	return &Config{
+func (c *config) Copy() Config {
+	return &config{
 		cfg:       c.cfg.Copy(),
 		profile:   c.profile,
 		configDir: c.configDir,

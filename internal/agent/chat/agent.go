@@ -116,7 +116,7 @@ func loadProjectContext(root *os.Root) (string, []byte, bool) {
 
 // ChatAgent is an interactive REPL-based chat agent backed by a RAG knowledge base.
 type ChatAgent struct {
-	cfg        *config.Config
+	cfg        config.Config
 	llm        *openai.Client
 	summarizer *summarizer.Summarizer
 	renderer   *glamour.TermRenderer
@@ -126,7 +126,7 @@ type ChatAgent struct {
 }
 
 // New creates a new ChatAgent instance.
-func New(cfg *config.Config, root *os.Root, toolStore *tools.Store) (*ChatAgent, error) {
+func New(cfg config.Config, root *os.Root, toolStore *tools.Store) (*ChatAgent, error) {
 	llmCfg := openai.DefaultConfig(cfg.ProfileParamString("llm.api_key"))
 	llmCfg.BaseURL = cfg.ProfileParamString("llm.base_url")
 	llmCfg.HTTPClient = requester.Get()
@@ -199,7 +199,7 @@ func (h *agentHandle) SetMessages(msgs []openai.ChatCompletionMessage) {
 	h.a.messages = msgs
 }
 
-func (h *agentHandle) Config() *config.Config {
+func (h *agentHandle) Config() config.Config {
 	return h.a.cfg
 }
 

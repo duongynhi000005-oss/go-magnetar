@@ -30,12 +30,12 @@ Do not add any preamble or meta-commentary — output only the summary text.`
 // Summarizer condenses a slice of chat messages into a single summary message
 // using the configured LLM.
 type Summarizer struct {
-	cfg *config.Config
+	cfg config.Config
 	llm *openai.Client
 }
 
 // New creates a Summarizer backed by the same LLM as the chat agent.
-func New(cfg *config.Config) *Summarizer {
+func New(cfg config.Config) *Summarizer {
 	llmCfg := openai.DefaultConfig(cfg.ProfileParamString("llm.api_key"))
 	llmCfg.BaseURL = cfg.ProfileParamString("llm.base_url")
 	llmCfg.HTTPClient = requester.Get()

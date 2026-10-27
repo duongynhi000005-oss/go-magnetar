@@ -12,7 +12,7 @@ import (
 // NewStore creates a new Store instance based on configuration.
 // Supports both qdrant and chromem stores.
 // This function abstracts store selection to avoid circular dependencies.
-func NewStore(cfg *config.Config) (rag.Store, error) {
+func NewStore(cfg config.Config) (rag.Store, error) {
 	storeType := cfg.String("rag.store.type")
 	if storeType == "" {
 		storeType = "qdrant"

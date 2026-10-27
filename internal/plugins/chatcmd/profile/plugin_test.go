@@ -12,12 +12,12 @@ import (
 	"github.com/wmentor/go-magnetar/internal/plugin/testdata"
 )
 
-func testConfig(t *testing.T) *config.Config {
+func testConfig(t *testing.T) config.Config {
 	t.Helper()
 	return loadConfig(t, "testdata/config.yml")
 }
 
-func loadConfig(t *testing.T, path string) *config.Config {
+func loadConfig(t *testing.T, path string) config.Config {
 	t.Helper()
 	cfg, err := config.Load(path)
 	if err != nil {

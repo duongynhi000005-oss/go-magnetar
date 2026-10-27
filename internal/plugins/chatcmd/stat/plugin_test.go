@@ -16,19 +16,19 @@ import (
 // fakeAgentHandle is a minimal plugin.AgentHandle for testing /stat.
 type fakeAgentHandle struct {
 	msgs []openai.ChatCompletionMessage
-	cfg  *config.Config
+	cfg  config.Config
 }
 
 func (f *fakeAgentHandle) Messages() []openai.ChatCompletionMessage { return f.msgs }
 func (f *fakeAgentHandle) SetMessages(msgs []openai.ChatCompletionMessage) {
 	f.msgs = msgs
 }
-func (f *fakeAgentHandle) Config() *config.Config    { return f.cfg }
+func (f *fakeAgentHandle) Config() config.Config    { return f.cfg }
 func (f *fakeAgentHandle) Reconfigure()              {}
 func (f *fakeAgentHandle) Compact(_ ...string) error { return nil }
 func (f *fakeAgentHandle) Reset()                    {}
 
-func writeTestConfig(t *testing.T) *config.Config {
+func writeTestConfig(t *testing.T) config.Config {
 	t.Helper()
 	yaml := `version: "1.0"
 profile: default

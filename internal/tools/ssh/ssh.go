@@ -26,7 +26,7 @@ const (
 )
 
 type Tool struct {
-	cfg           *config.Config
+	cfg           config.Config
 	printer       printer.Printer
 	clientFactory requester.ClientFactory
 	root          *os.Root
@@ -35,7 +35,7 @@ type Tool struct {
 	interceptor   *interceptor.Interceptor
 }
 
-func New(cfg *config.Config, p printer.Printer, clientFactory requester.ClientFactory, root *os.Root, state *plugin.State) *Tool {
+func New(cfg config.Config, p printer.Printer, clientFactory requester.ClientFactory, root *os.Root, state *plugin.State) *Tool {
 	return &Tool{
 		cfg:           cfg,
 		printer:       p,

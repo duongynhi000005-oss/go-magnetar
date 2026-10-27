@@ -18,7 +18,7 @@ import (
 
 // Store implements rag.Store interface using chromem-go storage.
 type Store struct {
-	cfg         *config.Config
+	cfg         config.Config
 	db          *chromem.DB
 	collection  *chromem.Collection
 	embedClient *openai.Client
@@ -27,7 +27,7 @@ type Store struct {
 // NewStore creates a new chromem store instance.
 // If rag.chromem.data_dir is empty, creates an in-memory store.
 // Otherwise, creates a persistent store at the specified directory.
-func NewStore(cfg *config.Config) (*Store, error) {
+func NewStore(cfg config.Config) (*Store, error) {
 	dataDir := cfg.String("rag.chromem.data_dir")
 
 	var db *chromem.DB

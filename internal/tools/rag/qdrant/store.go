@@ -24,7 +24,7 @@ const (
 )
 
 type Store struct {
-	cfg          *config.Config
+	cfg          config.Config
 	embedClient  *openai.Client
 	llmClient    *openai.Client // used for query expansion (multi-query)
 	qdrantClient *qdrant.Client
@@ -43,7 +43,7 @@ func (s *Store) Name() string {
 }
 
 // NewStore creates a new qdrant store instance.
-func NewStore(cfg *config.Config) (*Store, error) {
+func NewStore(cfg config.Config) (*Store, error) {
 	// Build OpenAI embedding client.
 	embedClient := rag.NewEmbeddingClient(cfg)
 

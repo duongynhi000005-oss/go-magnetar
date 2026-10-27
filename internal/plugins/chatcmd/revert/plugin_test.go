@@ -139,7 +139,7 @@ func (a *mockAgent) Messages() []openai.ChatCompletionMessage { return a.message
 func (a *mockAgent) SetMessages(msgs []openai.ChatCompletionMessage) {
 	a.messages = msgs
 }
-func (a *mockAgent) Config() *config.Config    { return nil }
+func (a *mockAgent) Config() config.Config    { return nil }
 func (a *mockAgent) Compact(_ ...string) error { return nil }
 func (a *mockAgent) Reset()                    {}
 func (a *mockAgent) Reconfigure()              {}

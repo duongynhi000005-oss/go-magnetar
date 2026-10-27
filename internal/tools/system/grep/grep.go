@@ -24,7 +24,7 @@ type SystemGrepParams struct {
 
 // Tool provides system_grep operation as LLM tool.
 type Tool struct {
-	cfg           *config.Config
+	cfg           config.Config
 	printer       printer.Printer
 	clientFactory requester.ClientFactory
 	root          *os.Root
@@ -33,7 +33,7 @@ type Tool struct {
 }
 
 // New creates a new Tool instance.
-func New(cfg *config.Config, p printer.Printer, clientFactory requester.ClientFactory, root *os.Root, state *plugin.State) *Tool {
+func New(cfg config.Config, p printer.Printer, clientFactory requester.ClientFactory, root *os.Root, state *plugin.State) *Tool {
 	return &Tool{
 		cfg:           cfg,
 		printer:       p,

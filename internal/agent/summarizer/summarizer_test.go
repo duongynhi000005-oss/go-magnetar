@@ -16,7 +16,7 @@ import (
 	"github.com/wmentor/go-magnetar/internal/config"
 )
 
-func loadTestConfig(t *testing.T, yaml string) *config.Config {
+func loadTestConfig(t *testing.T, yaml string) config.Config {
 	t.Helper()
 
 	cfgPath := filepath.Join(t.TempDir(), "config.yml")

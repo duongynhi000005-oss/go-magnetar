@@ -23,7 +23,7 @@ func (h *mockHub) RegisterPreprocessor(plugin.PreprocessorFunc) {}
 func (h *mockHub) Go(func(ctx context.Context))                 {}
 func (h *mockHub) Stop()                                        {}
 
-func loadConfig(t *testing.T, yaml string) *config.Config {
+func loadConfig(t *testing.T, yaml string) config.Config {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config.yml")
 	require.NoError(t, os.WriteFile(path, []byte(yaml), 0o600))

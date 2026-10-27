@@ -31,7 +31,7 @@ const (
 
 // ConfluenceTools provides Confluence page fetching as an LLM tool.
 type ConfluenceTools struct {
-	cfg   *config.Config
+	cfg   config.Config
 	state *plugin.State
 }
 
@@ -60,7 +60,7 @@ type Page struct {
 }
 
 // New creates a new ConfluenceTools instance.
-func New(cfg *config.Config, state *plugin.State) *ConfluenceTools {
+func New(cfg config.Config, state *plugin.State) *ConfluenceTools {
 	return &ConfluenceTools{cfg: cfg, state: state}
 }
 

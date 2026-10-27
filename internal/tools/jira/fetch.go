@@ -22,11 +22,11 @@ const jiraDefaultTimeout = time.Minute
 
 // JiraTools provides JIRA issue fetching as an LLM tool.
 type JiraTools struct {
-	cfg *config.Config
+	cfg config.Config
 }
 
 // New creates a new JiraTools instance.
-func New(cfg *config.Config) *JiraTools {
+func New(cfg config.Config) *JiraTools {
 	return &JiraTools{cfg: cfg}
 }
 

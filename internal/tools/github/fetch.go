@@ -22,11 +22,11 @@ const githubDefaultTimeout = time.Minute
 
 // GitHubTools provides GitHub repository fetching as an LLM tool.
 type GitHubTools struct {
-	cfg *config.Config
+	cfg config.Config
 }
 
 // New creates a new GitHubTools instance.
-func New(cfg *config.Config) *GitHubTools {
+func New(cfg config.Config) *GitHubTools {
 	return &GitHubTools{cfg: cfg}
 }
 

@@ -48,7 +48,7 @@ func (p *Plugin) Init(_ *plugin.State, hub plugin.Hub) error {
 // CurrentProfileMarkdown renders the profile listing as markdown for the
 // unified chat-command output (ChatCommandResponse.Stdout), so /profile
 // prints through the same channel as /help and every other chat command.
-func CurrentProfileMarkdown(cfg *config.Config, messages []openai.ChatCompletionMessage) string {
+func CurrentProfileMarkdown(cfg config.Config, messages []openai.ChatCompletionMessage) string {
 	profiles := cfg.Profiles()
 	current := cfg.String("profile")
 	model := cfg.ProfileParamString("llm.model")

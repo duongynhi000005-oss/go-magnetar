@@ -36,12 +36,12 @@ const (
 
 // WebTools provides web fetching operations as LLM tools.
 type WebTools struct {
-	cfg   *config.Config
+	cfg   config.Config
 	state *plugin.State
 }
 
 // New creates a new WebTools instance.
-func New(cfg *config.Config, root *os.Root, state *plugin.State) (*WebTools, error) {
+func New(cfg config.Config, root *os.Root, state *plugin.State) (*WebTools, error) {
 	return &WebTools{
 		cfg:   cfg,
 		state: state,

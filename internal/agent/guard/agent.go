@@ -57,7 +57,7 @@ Command to analyze:
 `
 
 type Guard struct {
-	cfg *config.Config
+	cfg config.Config
 	llm *openai.Client
 }
 
@@ -66,7 +66,7 @@ type Response struct {
 	Reason  string `json:"reason"`
 }
 
-func New(cfg *config.Config) *Guard {
+func New(cfg config.Config) *Guard {
 	llmCfg := openai.DefaultConfig(cfg.ProfileParamString("llm.api_key"))
 	llmCfg.BaseURL = cfg.ProfileParamString("llm.base_url")
 	llmCfg.HTTPClient = requester.Get()

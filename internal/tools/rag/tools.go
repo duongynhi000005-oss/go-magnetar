@@ -61,7 +61,7 @@ func StaticDefinitionSearch() openai.Tool {
 }
 
 // NewEmbeddingClient creates a new OpenAI client configured for RAG embeddings.
-func NewEmbeddingClient(cfg *config.Config) *openai.Client {
+func NewEmbeddingClient(cfg config.Config) *openai.Client {
 	var apiKey, baseURL string
 	if cfg != nil {
 		apiKey = cfg.String("rag.llm.api_key")

@@ -27,7 +27,7 @@ func (a *mockAgent) SetMessages(msgs []openai.ChatCompletionMessage) {
 	a.messages = msgs
 }
 
-func (a *mockAgent) Config() *config.Config {
+func (a *mockAgent) Config() config.Config {
 	return nil
 }
 

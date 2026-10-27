@@ -421,7 +421,7 @@ type Hub interface {
 type AgentHandle interface {
     Messages() []openai.ChatCompletionMessage
     SetMessages([]openai.ChatCompletionMessage)
-    Config() *config.Config
+    Config() config.Config
     Compact() error
     Reset()
 }

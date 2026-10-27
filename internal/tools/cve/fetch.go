@@ -19,12 +19,12 @@ import (
 const cveDefaultTimeout = 30 * time.Second
 
 type Tool struct {
-	cfg           *config.Config
+	cfg           config.Config
 	printer       printer.Printer
 	clientFactory requester.ClientFactory
 }
 
-func NewTool(cfg *config.Config, p printer.Printer, clientFactory requester.ClientFactory) *Tool {
+func NewTool(cfg config.Config, p printer.Printer, clientFactory requester.ClientFactory) *Tool {
 	return &Tool{
 		cfg:           cfg,
 		printer:       p,

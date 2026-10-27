@@ -199,7 +199,7 @@ func loadSession(a *chat.ChatAgent, filename string) error {
 	return nil
 }
 
-func printEnabledModules(prnt printer.Printer, cfg *config.Config) {
+func printEnabledModules(prnt printer.Printer, cfg config.Config) {
 	has := false
 	if cfg.String("confluence.base_url") != "" && cfg.Bool("confluence.enable") {
 		prnt.Print(printer.IconModule, "confluence plugin is enabled")

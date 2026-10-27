@@ -48,13 +48,10 @@ func (_m *AgentHandle) EXPECT() *AgentHandle_Expecter {
 
 // Compact provides a mock function for the type AgentHandle
 func (_mock *AgentHandle) Compact(mode ...string) error {
-	// string
-	_va := make([]any, len(mode))
-	for _i := range mode {
-		_va[_i] = mode[_i]
-	}
 	var _ca []any
-	_ca = append(_ca, _va...)
+	for _, _a := range mode {
+		_ca = append(_ca, _a)
+	}
 	ret := _mock.Called(_ca...)
 
 	if len(ret) == 0 {
@@ -76,25 +73,17 @@ type AgentHandle_Compact_Call struct {
 }
 
 // Compact is a helper method to define mock.On call
-//   - mode ...string
 func (_e *AgentHandle_Expecter) Compact(mode ...any) *AgentHandle_Compact_Call {
-	return &AgentHandle_Compact_Call{Call: _e.mock.On("Compact",
-		append([]any{}, mode...)...)}
+	return &AgentHandle_Compact_Call{Call: _e.mock.On("Compact", mode...)}
 }
 
 func (_c *AgentHandle_Compact_Call) Run(run func(mode ...string)) *AgentHandle_Compact_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 []string
-		variadicArgs := make([]string, len(args)-0)
-		for i, a := range args[0:] {
-			if a != nil {
-				variadicArgs[i] = a.(string)
-			}
+		var variadicArgs []string
+		for _, a := range args {
+			variadicArgs = append(variadicArgs, a.(string))
 		}
-		arg0 = variadicArgs
-		run(
-			arg0...,
-		)
+		run(variadicArgs...)
 	})
 	return _c
 }
@@ -110,19 +99,19 @@ func (_c *AgentHandle_Compact_Call) RunAndReturn(run func(mode ...string) error)
 }
 
 // Config provides a mock function for the type AgentHandle
-func (_mock *AgentHandle) Config() *config.Config {
+func (_mock *AgentHandle) Config() config.Config {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for Config")
 	}
 
-	var r0 *config.Config
-	if returnFunc, ok := ret.Get(0).(func() *config.Config); ok {
+	var r0 config.Config
+	if returnFunc, ok := ret.Get(0).(func() config.Config); ok {
 		r0 = returnFunc()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*config.Config)
+			r0 = ret.Get(0).(config.Config)
 		}
 	}
 	return r0
@@ -145,12 +134,12 @@ func (_c *AgentHandle_Config_Call) Run(run func()) *AgentHandle_Config_Call {
 	return _c
 }
 
-func (_c *AgentHandle_Config_Call) Return(config1 *config.Config) *AgentHandle_Config_Call {
+func (_c *AgentHandle_Config_Call) Return(config1 config.Config) *AgentHandle_Config_Call {
 	_c.Call.Return(config1)
 	return _c
 }
 
-func (_c *AgentHandle_Config_Call) RunAndReturn(run func() *config.Config) *AgentHandle_Config_Call {
+func (_c *AgentHandle_Config_Call) RunAndReturn(run func() config.Config) *AgentHandle_Config_Call {
 	_c.Call.Return(run)
 	return _c
 }

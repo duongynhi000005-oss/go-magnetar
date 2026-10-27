@@ -18,13 +18,13 @@ import (
 
 // Indexer chunks content into overlapping segments and stores them in the RAG knowledge base.
 type Indexer struct {
-	cfg *config.Config
+	cfg config.Config
 	rag *rag.RAGTools
 	web *web.WebTools
 }
 
 // New creates a new Indexer instance.
-func New(cfg *config.Config, root *os.Root, state *plugin.State) (*Indexer, error) {
+func New(cfg config.Config, root *os.Root, state *plugin.State) (*Indexer, error) {
 	vecStore, err := store.NewStore(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("init RAG store error: %w", err)
