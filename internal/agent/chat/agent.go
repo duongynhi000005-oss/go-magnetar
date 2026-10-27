@@ -523,9 +523,10 @@ func loadHistory() {
 // inputModel is a minimal bubbletea model used solely to collect one line of
 // user input with a styled prompt.
 type inputModel struct {
-	input textinput.Model
-	done  bool
-	quit  bool
+	input       textinput.Model
+	suggestions []string
+	done        bool
+	quit        bool
 }
 
 var (
@@ -564,7 +565,18 @@ func (m *inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type { //nolint:exhaustive // ok.
+		case tea.KeyTab:
+			completed, matches := completeCommandInput(m.input.Value(), history)
+			m.input.SetValue(completed)
+			m.input.CursorEnd()
+			if len(matches) > 1 {
+				m.suggestions = matches
+			} else {
+				m.suggestions = nil
+			}
+			return m, nil
 		case tea.KeyEnter:
+			m.suggestions = nil
 			m.done = true
 			text := m.input.Value()
 			if text != "" {
@@ -572,15 +584,18 @@ func (m *inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case tea.KeyCtrlC, tea.KeyCtrlD:
+			m.suggestions = nil
 			m.quit = true
 			return m, tea.Quit
 		case tea.KeyUp:
+			m.suggestions = nil
 			if record := history.Prev(); record != "" {
 				m.input.SetValue(record)
 				m.input.CursorEnd()
 			}
 			return m, nil
 		case tea.KeyDown:
+			m.suggestions = nil
 			if record := history.Next(); record != "" {
 				m.input.SetValue(record)
 				m.input.CursorEnd()
@@ -588,6 +603,8 @@ func (m *inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.input.SetValue("")
 			}
 			return m, nil
+		default:
+			m.suggestions = nil
 		}
 	}
 	var cmd tea.Cmd
@@ -596,7 +613,7 @@ func (m *inputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *inputModel) View() string {
-	return m.input.View()
+	return m.input.View() + formatSuggestions(m.suggestions)
 }
 
 // readInput launches a bubbletea program to collect one line from the user.
