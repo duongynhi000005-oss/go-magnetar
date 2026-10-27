@@ -217,6 +217,10 @@ func printEnabledModules(prnt printer.Printer, cfg *config.Config) {
 		prnt.Print(printer.IconModule, "ssh plugin is enabled")
 		has = true
 	}
+	if cfg.String("smtp.server.host") != "" && cfg.Bool("smtp.enable") {
+		prnt.Print(printer.IconModule, "smtp plugin is enabled")
+		has = true
+	}
 	if has {
 		prnt.EmptyLine()
 	}

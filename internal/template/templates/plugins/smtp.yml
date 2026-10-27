@@ -1,0 +1,11 @@
+smtp:
+  enable: false  # enable SMTP email tool (default: false)
+  from:
+    name: ""     # sender display name (e.g., "John Doe")
+    email: ""    # sender email address (e.g., "noreply@example.com")
+  server:
+    host: ""     # SMTP server hostname (e.g., smtp.gmail.com)
+    port: 465    # SMTP server port (default: 465)
+    username: $env:SMTP_USERNAME  # SMTP username (optional)
+    password: $env:SMTP_PASSWORD  # SMTP password (optional)
+    tls: true    # enable TLS/SSL encryption (default: true)

@@ -64,6 +64,14 @@ func Load(path string) (*Config, error) {
 		"ssh.use_ssh_agent":          false,                   // use ssh-agent for authentication (default: false)
 		"ssh.remote_dir":             "",                      // remote working directory (optional, default: $HOME)
 		"ssh.timeout":                120,                     // SSH command timeout in seconds (default: 120)
+		"smtp.enable":                false,                   // enable SMTP email tool (default: false)
+		"smtp.from.name":             "",                      // sender display name (optional)
+		"smtp.from.email":            "",                      // sender email address
+		"smtp.server.host":           "",                      // SMTP server host
+		"smtp.server.port":           465,                     // SMTP server port (default: 465)
+		"smtp.server.username":       "",                      // SMTP username
+		"smtp.server.password":       "",                      // SMTP password
+		"smtp.server.tls":            true,                    // enable TLS/SSL (default: true)
 	}
 
 	if currentUser, err := user.Current(); err == nil {
