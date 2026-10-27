@@ -154,6 +154,20 @@ These live in `plugins/web.yml`. Add `plugins/web.yml` to the `include` list of 
 | `remote_dir` | string | Remote working directory (optional, default: `$HOME`) |
 | `timeout` | integer | SSH command timeout in seconds (default: `120`) |
 
+#### MCP (`mcp`)
+
+| Key | Type | Description |
+|---|---|---|
+| `enable` | boolean | Enable Model Context Protocol (MCP) server tools (default: `false`) |
+| `servers.<name>.enable` | boolean | Enable or disable a specific MCP server (default: `true`) |
+| `servers.<name>.transport` | string | Transport type: `stdio` or `http` (inferred from `command` or `url` when omitted) |
+| `servers.<name>.command` | string | Executable command for `stdio` MCP servers |
+| `servers.<name>.args` | array of strings | Command-line arguments for `stdio` MCP servers |
+| `servers.<name>.env` | map of strings | Additional environment variables for `stdio` MCP servers |
+| `servers.<name>.url` | string | Endpoint URL for `http` MCP servers |
+| `servers.<name>.headers` | map of strings | HTTP headers sent to `http` MCP servers |
+| `servers.<name>.timeout` | integer | Per-request timeout in seconds (default: `60`) |
+
 ### Compact Configuration
 
 Controls conversation history compression:

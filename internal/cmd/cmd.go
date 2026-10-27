@@ -217,6 +217,10 @@ func printEnabledModules(prnt printer.Printer, cfg *config.Config) {
 		prnt.Print(printer.IconModule, "ssh plugin is enabled")
 		has = true
 	}
+	if cfg.Bool("mcp.enable") && len(cfg.MapKeys("mcp.servers")) > 0 {
+		prnt.Print(printer.IconModule, "mcp plugin is enabled")
+		has = true
+	}
 	if has {
 		prnt.EmptyLine()
 	}

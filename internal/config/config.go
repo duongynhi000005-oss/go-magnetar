@@ -65,6 +65,7 @@ func Load(path string) (*Config, error) {
 		"ssh.remote_dir":             "",                      // remote working directory (optional, default: $HOME)
 		"ssh.timeout":                120,                     // SSH command timeout in seconds (default: 120)
 		"compact.mode":               "soft",                  // compacting strategy: soft or compact (default: soft)
+		"mcp.enable":                 false,                   // enable MCP servers support (default: false)
 	}
 
 	if currentUser, err := user.Current(); err == nil {
@@ -139,6 +140,31 @@ func (c *Config) Float64(key string) float64 {
 // Strings returns the string slice value for the given key.
 func (c *Config) Strings(key string) []string {
 	return c.cfg.Strings(key)
+}
+
+// MapKeys returns the sorted keys of a nested map at the given path.
+func (c *Config) MapKeys(key string) []string {
+	list := c.cfg.MapKeys(key)
+	sort.Strings(list)
+	return list
+}
+
+// StringMap returns a string map at the given path with environment/file variables resolved.
+func (c *Config) StringMap(key string) map[string]string {
+	raw := c.cfg.StringMap(key)
+	if len(raw) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(raw))
+	for k, v := range raw {
+		out[k] = ResolveEnvVars(v, c.configDir)
+	}
+	return out
+}
+
+// Exists reports whether the given configuration key is set.
+func (c *Config) Exists(key string) bool {
+	return c.cfg.Exists(key)
 }
 
 // String returns the string value for the given key.

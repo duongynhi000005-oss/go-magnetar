@@ -1,0 +1,18 @@
+mcp:
+  enable: false  # enable MCP servers integration (default: false)
+  servers: {}
+  # Example MCP servers configuration:
+  # servers:
+  #   filesystem:
+  #     transport: stdio
+  #     command: npx
+  #     args:
+  #       - -y
+  #       - "@modelcontextprotocol/server-filesystem"
+  #       - /workspace
+  #   remote_api:
+  #     transport: http
+  #     url: http://localhost:8080/mcp
+  #     headers:
+  #       Authorization: "Bearer $env:MCP_API_TOKEN"
+  #     timeout: 60
