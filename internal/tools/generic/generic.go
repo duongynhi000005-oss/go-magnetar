@@ -608,7 +608,10 @@ func (g *GenericTools) SystemGrep(filename string, pattern string) string {
 		cmd = []string{"grep", "-n", "-i", "-r", "-E", pattern, filename}
 	}
 
-	output, err := exec.Command(cmd[0], cmd[1:]...).CombinedOutput() //nolint:gosec // it's ok.
+	ctx, cancel := context.WithTimeout(context.Background(), execTimeout)
+	defer cancel()
+
+	output, err := exec.CommandContext(ctx, cmd[0], cmd[1:]...).CombinedOutput() //nolint:gosec // it's ok.
 	if err != nil {
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {

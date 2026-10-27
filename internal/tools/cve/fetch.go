@@ -1,6 +1,7 @@
 package cve
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -68,8 +69,16 @@ func (c *CVETools) FetchVulnerability(id string) (string, error) {
 
 	apiURL := fmt.Sprintf("https://api.osv.dev/v1/vulns/%s", parsedID)
 
+	ctx, cancel := context.WithTimeout(context.Background(), cveDefaultTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("cve: failed to create request for %s: %w", parsedID, err)
+	}
+
 	client := &http.Client{Timeout: cveDefaultTimeout}
-	resp, err := client.Get(apiURL)
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("cve: failed to fetch vulnerability %s: %w", parsedID, err)
 	}

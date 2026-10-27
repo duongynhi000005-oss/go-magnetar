@@ -40,7 +40,7 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 	return nil
 }
 
-func (p *Plugin) execute(_ context.Context, params *plugin.ChatCommandInput) (*plugin.ChatCommandResponse, error) {
+func (p *Plugin) execute(ctx context.Context, params *plugin.ChatCommandInput) (*plugin.ChatCommandResponse, error) {
 	args := params.Args
 	if args == "" {
 		fmt.Fprintln(os.Stdout, "Usage: /fetch <url> [file]")
@@ -78,7 +78,7 @@ func (p *Plugin) execute(_ context.Context, params *plugin.ChatCommandInput) (*p
 		stdin := bytes.NewBuffer(nil)
 		stdin.WriteString(content)
 
-		cmd := exec.Command("less")
+		cmd := exec.CommandContext(ctx, "less")
 		cmd.Stdin = stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
