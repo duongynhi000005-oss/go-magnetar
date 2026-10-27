@@ -151,3 +151,37 @@ func TestIsBinaryFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestIsSupported(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		ext  string
+		want bool
+	}{
+		{name: "txt with dot", ext: ".txt", want: true},
+		{name: "txt without dot", ext: "txt", want: true},
+		{name: "uppercase TXT", ext: ".TXT", want: true},
+		{name: "pdf with dot", ext: ".pdf", want: true},
+		{name: "docx with dot", ext: ".docx", want: true},
+		{name: "html with dot", ext: ".html", want: true},
+		{name: "htm with dot", ext: ".htm", want: true},
+		{name: "csv with dot", ext: ".csv", want: true},
+		{name: "tsv with dot", ext: ".tsv", want: true},
+		{name: "xlsx with dot", ext: ".xlsx", want: true},
+		{name: "pptx with dot", ext: ".pptx", want: true},
+		{name: "odt with dot", ext: ".odt", want: true},
+		{name: "unsupported binary", ext: ".exe", want: false},
+		{name: "empty extension", ext: "", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := codec.IsSupported(tt.ext); got != tt.want {
+				t.Errorf("IsSupported(%q) = %v, want %v", tt.ext, got, tt.want)
+			}
+		})
+	}
+}

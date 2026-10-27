@@ -85,3 +85,14 @@ func IsBinaryFormat(mimeType string) bool {
 	_, has := mimeBinary[mimeType]
 	return has
 }
+
+// IsSupported reports whether the given file extension is supported for indexing
+// either via a registered document codec or as plain text (.txt).
+func IsSupported(extensionName string) bool {
+	ext := strings.ToLower(strings.TrimSpace(extensionName))
+	if ext == ".txt" || ext == "txt" {
+		return true
+	}
+	_, err := GetCodec(ext)
+	return err == nil
+}

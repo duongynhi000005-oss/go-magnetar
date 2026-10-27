@@ -42,7 +42,7 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 	hub.RegisterChatCommand(plugin.ChatCommand{
 		Name:    "index",
 		Aliases: []string{"i"},
-		Help:    "Index file or URL into RAG knowledge base (auto-detects URL vs file)",
+		Help:    "Index file, directory (-r/--recursive), or URL into RAG knowledge base (options: -r/--recursive, -m <message>, --exclude <dirs>)",
 		Execute: p.execute,
 	})
 
@@ -56,31 +56,138 @@ func (p *Plugin) Init(s *plugin.State, hub plugin.Hub) error {
 	return nil
 }
 
-func (p *Plugin) execute(ctx context.Context, params *plugin.ChatCommandInput) (*plugin.ChatCommandResponse, error) {
-	args := params.Args
-	if args == "" {
-		return nil, fmt.Errorf("usage: /index <path|url> [-m <message>]")
+type indexOptions struct {
+	target    string
+	message   string
+	recursive bool
+	excludes  []string
+}
+
+func tokenizeArgs(raw string) ([]string, error) {
+	var tokens []string
+	var cur strings.Builder
+	inQuote := rune(0)
+	escaped := false
+
+	for _, r := range raw {
+		if escaped {
+			cur.WriteRune(r)
+			escaped = false
+			continue
+		}
+		if r == '\\' && inQuote == '"' {
+			escaped = true
+			continue
+		}
+		if inQuote != 0 {
+			if r == inQuote {
+				inQuote = 0
+			} else {
+				cur.WriteRune(r)
+			}
+			continue
+		}
+		if r == '"' || r == '\'' {
+			inQuote = r
+			continue
+		}
+		if r == ' ' || r == '\t' || r == '\n' || r == '\r' {
+			if cur.Len() > 0 {
+				tokens = append(tokens, cur.String())
+				cur.Reset()
+			}
+			continue
+		}
+		cur.WriteRune(r)
 	}
 
-	message := ""
+	if inQuote != 0 {
+		return nil, fmt.Errorf("unterminated quote in arguments")
+	}
+	if cur.Len() > 0 {
+		tokens = append(tokens, cur.String())
+	}
+	return tokens, nil
+}
 
-	parts := strings.Fields(args)
-	target := parts[0]
-	for i := 1; i < len(parts); i++ {
-		if parts[i] == "-m" && i+1 < len(parts) {
-			message = parts[i+1]
+func parseIndexArgs(raw string) (indexOptions, error) {
+	var opts indexOptions
+
+	tokens, err := tokenizeArgs(strings.TrimSpace(raw))
+	if err != nil {
+		return opts, err
+	}
+	if len(tokens) == 0 {
+		return opts, fmt.Errorf("usage: /index <path|url> [-r|--recursive] [-m <message>] [--exclude <dirs>]")
+	}
+
+	for i := 0; i < len(tokens); i++ {
+		tok := tokens[i]
+		switch {
+		case tok == "-r" || tok == "--recursive":
+			opts.recursive = true
+		case tok == "-m" || tok == "--message":
+			if i+1 >= len(tokens) {
+				return opts, fmt.Errorf("missing value for %s", tok)
+			}
+			opts.message = tokens[i+1]
 			i++
+		case strings.HasPrefix(tok, "-m="):
+			opts.message = strings.TrimPrefix(tok, "-m=")
+		case strings.HasPrefix(tok, "--message="):
+			opts.message = strings.TrimPrefix(tok, "--message=")
+		case tok == "--exclude":
+			if i+1 >= len(tokens) {
+				return opts, fmt.Errorf("missing value for --exclude")
+			}
+			for _, part := range strings.Split(tokens[i+1], ",") {
+				if name := strings.TrimSpace(part); name != "" {
+					opts.excludes = append(opts.excludes, name)
+				}
+			}
+			i++
+		case strings.HasPrefix(tok, "--exclude="):
+			for _, part := range strings.Split(strings.TrimPrefix(tok, "--exclude="), ",") {
+				if name := strings.TrimSpace(part); name != "" {
+					opts.excludes = append(opts.excludes, name)
+				}
+			}
+		default:
+			if opts.target == "" {
+				opts.target = tok
+			}
 		}
 	}
 
-	if strings.HasPrefix(target, "http://") || strings.HasPrefix(target, "https://") {
-		if err := p.idx.IndexURL(target, message); err != nil {
+	if opts.target == "" {
+		return opts, fmt.Errorf("usage: /index <path|url> [-r|--recursive] [-m <message>] [--exclude <dirs>]")
+	}
+
+	return opts, nil
+}
+
+func (p *Plugin) execute(ctx context.Context, params *plugin.ChatCommandInput) (*plugin.ChatCommandResponse, error) {
+	opts, err := parseIndexArgs(params.Args)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(opts.target, "http://") || strings.HasPrefix(opts.target, "https://") {
+		if err := p.idx.IndexURL(opts.target, opts.message); err != nil {
 			return nil, fmt.Errorf("index URL failed: %w", err)
 		}
 		return plugin.NopChatCommandResponse, nil
 	}
 
-	if err := p.idx.IndexFile(target, message); err != nil {
+	target := common.ExpandHome(opts.target)
+	if info, statErr := os.Stat(target); statErr == nil && info.IsDir() {
+		if err := p.idx.IndexDirectory(target, opts.message, opts.recursive, opts.excludes...); err != nil {
+			return nil, fmt.Errorf("index directory failed: %w", err)
+		}
+		return plugin.NopChatCommandResponse, nil
+	}
+
+	if err := p.idx.IndexFile(target, opts.message); err != nil {
 		return nil, fmt.Errorf("index file failed: %w", err)
 	}
 	return plugin.NopChatCommandResponse, nil
